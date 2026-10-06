@@ -18,7 +18,7 @@ public sealed class Metric : INotifyPropertyChanged
     double _maximum = 100;
     double _warn = 60;
     double _hot = 80;
-    double[] _historyView = Array.Empty<double>();
+    IReadOnlyList<double> _historyView = Array.Empty<double>();
     Brush _accent = Brushes.Gray;
 
     public string Title { get => _title; set => Set(ref _title, value); }
@@ -29,7 +29,7 @@ public sealed class Metric : INotifyPropertyChanged
     public double Maximum { get => _maximum; set => Set(ref _maximum, value); }
     public double Warn { get => _warn; set => Set(ref _warn, value); }
     public double Hot { get => _hot; set => Set(ref _hot, value); }
-    public double[] History { get => _historyView; private set => Set(ref _historyView, value); }
+    public IReadOnlyList<double> History { get => _historyView; private set => Set(ref _historyView, value); }
     public Brush Accent { get => _accent; private set => Set(ref _accent, value); }
 
     /// <summary>Guarda la muestra en el historial (para el sparkline) y recalcula el color.</summary>
