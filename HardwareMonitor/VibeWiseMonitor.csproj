@@ -17,6 +17,8 @@
     <!-- WPF + WinForms a la vez provocan nombres ambiguos (Color, Brushes, Point…): se quitan los usings globales de WinForms. -->
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
+    <!-- El SDK de escritorio no lo trae implícito en este proyecto. -->
+    <Using Include="System.IO" />
   </ItemGroup>
 
   <ItemGroup>
