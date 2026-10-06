@@ -3,8 +3,8 @@
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
-        <!-- Leer los sensores de la placa/CPU requiere acceso al driver, o sea administrador. -->
-        <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
+        <!-- Solo se lee la GPU (NVAPI/ADL): no hace falta administrador ni el driver de bajo nivel. -->
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
       </requestedPrivileges>
     </security>
   </trustInfo>

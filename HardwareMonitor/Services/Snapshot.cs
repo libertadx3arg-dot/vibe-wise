@@ -1,15 +1,9 @@
 namespace VibeWise.HardwareMonitor.Services;
 
-public sealed record FanReading(string Id, string Name, double Rpm);
+public sealed record FanReading(string Id, double Rpm);
 
-/// <summary>Lectura de todos los sensores en un instante. Temperaturas en °C.</summary>
+/// <summary>Lectura de la GPU en un instante. Temperaturas en °C, memoria en MB.</summary>
 public sealed record Snapshot(
-    string? CpuName,
-    double? CpuTemp,
-    double? CpuMaxCore,
-    double? CpuLoad,
-    double? BoardTemp,
-    string? BoardSensor,
     string? GpuName,
     double? GpuTemp,
     double? GpuHotSpot,

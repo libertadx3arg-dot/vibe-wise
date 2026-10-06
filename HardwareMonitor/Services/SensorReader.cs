@@ -2,20 +2,17 @@ using LibreHardwareMonitor.Hardware;
 
 namespace VibeWise.HardwareMonitor.Services;
 
-/// <summary>Envuelve LibreHardwareMonitor y devuelve un <see cref="Snapshot"/> por lectura.</summary>
+/// <summary>
+/// Lee solo la GPU con LibreHardwareMonitor. Sin CPU ni placa madre no se necesita el
+/// driver de bajo nivel (el que bloquea la Integridad de memoria): NVIDIA/AMD se leen por su API.
+/// </summary>
 public sealed class SensorReader : IDisposable
 {
     Computer? _computer;
 
     public void Open()
     {
-        _computer = new Computer
-        {
-            IsCpuEnabled = true,
-            IsGpuEnabled = true,
-            IsMotherboardEnabled = true,
-            IsControllerEnabled = true,
-        };
+        _computer = new Computer { IsGpuEnabled = true };
         _computer.Open();
     }
 
@@ -26,31 +23,19 @@ public sealed class SensorReader : IDisposable
         var all = Flatten(_computer.Hardware).ToList();
         foreach (var hw in all) hw.Update();
 
-        // CPU
-        var cpu = all.FirstOrDefault(h => h.HardwareType == HardwareType.Cpu);
-        var cpuTemps = Sensors(cpu, SensorType.Temperature);
-        var cpuTemp = Pick(cpuTemps, "Package", "Tctl", "Tdie", "Average");
-        var cpuMax = Pick(cpuTemps, "Core Max").Value;
-        var cpuLoad = Sensors(cpu, SensorType.Load)
-            .FirstOrDefault(s => s.Name.Contains("Total", StringComparison.OrdinalIgnoreCase))?.Value;
-
-        // Placa madre (los sensores cuelgan del chip Super I/O, un sub-hardware)
-        var boardTemps = all
-            .Where(h => h.HardwareType is HardwareType.Motherboard or HardwareType.SuperIO
-                                         or HardwareType.EmbeddedController)
-            .SelectMany(h => Sensors(h, SensorType.Temperature))
-            .ToList();
-        var board = Pick(boardTemps, "Motherboard", "System", "Chipset", "PCH");
-
-        // GPU: preferimos la dedicada (NVIDIA/AMD) sobre la integrada
+        // Preferimos la GPU dedicada (NVIDIA/AMD) sobre la integrada.
         var gpu = all.FirstOrDefault(h => h.HardwareType is HardwareType.GpuNvidia or HardwareType.GpuAmd)
                   ?? all.FirstOrDefault(h => h.HardwareType == HardwareType.GpuIntel);
-        var gpuTemps = Sensors(gpu, SensorType.Temperature);
-        var gpuCore = Pick(gpuTemps, "GPU Core", "GPU Temperature").Value;
-        var hotSpot = gpuTemps.FirstOrDefault(s => s.Name.Contains("Hot Spot", StringComparison.OrdinalIgnoreCase))?.Value;
-        var vramTemp = gpuTemps.FirstOrDefault(s => s.Name.Contains("Memory", StringComparison.OrdinalIgnoreCase))?.Value;
-        var gpuLoad = Sensors(gpu, SensorType.Load)
-            .FirstOrDefault(s => s.Name.Equals("GPU Core", StringComparison.OrdinalIgnoreCase))?.Value;
+        if (gpu is null)
+            return new Snapshot(null, null, null, null, null, null, null, null, Array.Empty<FanReading>());
+
+        var temps = Sensors(gpu, SensorType.Temperature);
+        double? core = Pick(temps, "GPU Core", "GPU Temperature");
+        double? hotSpot = temps.FirstOrDefault(s => s.Name.Contains("Hot Spot", StringComparison.OrdinalIgnoreCase))?.Value;
+        double? vramTemp = temps.FirstOrDefault(s => s.Name.Contains("Memory", StringComparison.OrdinalIgnoreCase))?.Value;
+
+        var loads = Sensors(gpu, SensorType.Load);
+        double? load = loads.FirstOrDefault(s => s.Name.Equals("GPU Core", StringComparison.OrdinalIgnoreCase))?.Value;
 
         var data = Sensors(gpu, SensorType.SmallData).Concat(Sensors(gpu, SensorType.Data)).ToList();
         double? used = data.FirstOrDefault(s => s.Name.Equals("GPU Memory Used", StringComparison.OrdinalIgnoreCase))?.Value
@@ -58,35 +43,17 @@ public sealed class SensorReader : IDisposable
         double? total = data.FirstOrDefault(s => s.Name.Equals("GPU Memory Total", StringComparison.OrdinalIgnoreCase))?.Value;
         double? pct = used.HasValue && total is > 0
             ? used / total * 100
-            : Sensors(gpu, SensorType.Load)
-                .FirstOrDefault(s => s.Name.Equals("GPU Memory", StringComparison.OrdinalIgnoreCase))?.Value;
+            : loads.FirstOrDefault(s => s.Name.Equals("GPU Memory", StringComparison.OrdinalIgnoreCase))?.Value;
 
-        // Ventiladores: de la placa, la GPU, el CPU o controladoras externas
-        var fans = new List<FanReading>();
-        foreach (var hw in all)
-        {
-            foreach (var s in Sensors(hw, SensorType.Fan))
-            {
-                if (s.Value is not { } rpm) continue;
-                fans.Add(new FanReading(s.Identifier.ToString(), $"{Category(hw.HardwareType)} · {s.Name}", rpm));
-            }
-        }
+        // Solo los ventiladores que realmente reportan RPM; el orden fija "Ventilador 1", "Ventilador 2"…
+        var fans = Sensors(gpu, SensorType.Fan)
+            .Where(s => s.Value.HasValue)
+            .OrderBy(s => s.Index).ThenBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(s => new FanReading(s.Identifier.ToString(), s.Value!.Value))
+            .ToList();
 
-        return new Snapshot(
-            cpu?.Name, cpuTemp.Value, cpuMax, cpuLoad,
-            board.Value, board.Name,
-            gpu?.Name, gpuCore, hotSpot, gpuLoad,
-            vramTemp, used, total, pct,
-            fans);
+        return new Snapshot(gpu.Name, core, hotSpot, load, vramTemp, used, total, pct, fans);
     }
-
-    static string Category(HardwareType t) => t switch
-    {
-        HardwareType.Cpu => "CPU",
-        HardwareType.GpuNvidia or HardwareType.GpuAmd or HardwareType.GpuIntel => "GPU",
-        HardwareType.Motherboard or HardwareType.SuperIO or HardwareType.EmbeddedController => "Placa",
-        _ => "Ctrl",
-    };
 
     static IEnumerable<IHardware> Flatten(IEnumerable<IHardware> roots)
     {
@@ -97,21 +64,19 @@ public sealed class SensorReader : IDisposable
         }
     }
 
-    // Solo los sensores del propio nodo (los sub-hardware se recorren aparte con Flatten).
-    static List<ISensor> Sensors(IHardware? hw, SensorType type) =>
-        hw is null ? new() : hw.Sensors.Where(s => s.SensorType == type).ToList();
+    static List<ISensor> Sensors(IHardware hw, SensorType type) =>
+        hw.Sensors.Where(s => s.SensorType == type).ToList();
 
     /// <summary>Primer sensor cuyo nombre contenga alguno de los preferidos; si no hay, el máximo.</summary>
-    static (double? Value, string? Name) Pick(List<ISensor> sensors, params string[] preferred)
+    static double? Pick(List<ISensor> sensors, params string[] preferred)
     {
         foreach (var p in preferred)
         {
             var s = sensors.FirstOrDefault(x => x.Value.HasValue &&
                 x.Name.Contains(p, StringComparison.OrdinalIgnoreCase));
-            if (s is not null) return (s.Value, s.Name);
+            if (s is not null) return s.Value;
         }
-        var best = sensors.Where(x => x.Value.HasValue).OrderByDescending(x => x.Value).FirstOrDefault();
-        return best is null ? (null, null) : (best.Value, best.Name);
+        return sensors.Where(x => x.Value.HasValue).OrderByDescending(x => x.Value).FirstOrDefault()?.Value;
     }
 
     public void Dispose() => _computer?.Close();
