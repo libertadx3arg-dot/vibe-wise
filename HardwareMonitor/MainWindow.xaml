@@ -67,48 +67,35 @@
 
         <DataTemplate DataType="{x:Type m:Metric}">
             <Border Style="{StaticResource Card}" Margin="6">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*" MinHeight="170"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="56"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Orientation="Horizontal">
+                <DockPanel LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                         <Ellipse Width="9" Height="9" Fill="{Binding Accent}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" Foreground="#F1F5F9"/>
                     </StackPanel>
 
-                    <c:ArcGauge Grid.Row="1" Margin="0,6"
+                    <c:Sparkline DockPanel.Dock="Bottom" Height="56" Values="{Binding History}" Stroke="{Binding Accent}"/>
+                    <TextBlock DockPanel.Dock="Bottom" Text="{Binding Detail2}" HorizontalAlignment="Center"
+                               FontSize="12.5" Foreground="#64748B" Margin="0,2,0,8" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock DockPanel.Dock="Bottom" Text="{Binding Detail}" HorizontalAlignment="Center"
+                               FontSize="12.5" Foreground="#94A3B8" TextTrimming="CharacterEllipsis"/>
+
+                    <c:ArcGauge MinHeight="170" Margin="0,6"
                                 Value="{Binding Value}" Maximum="{Binding Maximum}"
                                 Warn="{Binding Warn}" Hot="{Binding Hot}" Unit="{Binding Unit}"/>
-
-                    <TextBlock Grid.Row="2" Text="{Binding Detail}" HorizontalAlignment="Center"
-                               FontSize="12.5" Foreground="#94A3B8" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Grid.Row="3" Text="{Binding Detail2}" HorizontalAlignment="Center"
-                               FontSize="12.5" Foreground="#64748B" Margin="0,2,0,8" TextTrimming="CharacterEllipsis"/>
-
-                    <c:Sparkline Grid.Row="4" Values="{Binding History}" Stroke="{Binding Accent}"/>
-                </Grid>
+                </DockPanel>
             </Border>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type m:FanItem}">
-            <Grid Margin="0,0,0,14">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid>
-                    <TextBlock Text="{Binding Name}" FontSize="13" Foreground="#CBD5E1"/>
-                    <TextBlock Text="{Binding RpmText}" FontSize="13" FontWeight="SemiBold"
-                               HorizontalAlignment="Right" Foreground="#F1F5F9"/>
-                </Grid>
-                <ProgressBar Grid.Row="1" Style="{StaticResource Slim}" Margin="0,6,0,0"
+            <StackPanel Margin="0,0,0,14">
+                <DockPanel LastChildFill="False">
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding RpmText}" FontSize="13" FontWeight="SemiBold"
+                               Foreground="#F1F5F9"/>
+                    <TextBlock DockPanel.Dock="Left" Text="{Binding Name}" FontSize="13" Foreground="#CBD5E1"/>
+                </DockPanel>
+                <ProgressBar Style="{StaticResource Slim}" Margin="0,6,0,0"
                              Minimum="0" Maximum="{Binding Maximum}" Value="{Binding Rpm}"/>
-            </Grid>
+            </StackPanel>
         </DataTemplate>
     </Window.Resources>
 
