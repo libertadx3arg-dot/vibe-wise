@@ -1,0 +1,201 @@
+<Window x:Class="VibeWise.HardwareMonitor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:VibeWise.HardwareMonitor.Controls"
+        xmlns:m="clr-namespace:VibeWise.HardwareMonitor.Models"
+        Title="Vibe Wise · Monitor de hardware"
+        Width="1180" Height="740" MinWidth="900" MinHeight="620"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI Variable Display, Segoe UI" Foreground="#E2E8F0">
+
+    <Window.Resources>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="#99141B34"/>
+            <Setter Property="BorderBrush" Value="#1AFFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="Padding" Value="18"/>
+        </Style>
+
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#CBD5E1"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="38"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="9">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#26FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="Slim" TargetType="ProgressBar">
+            <Setter Property="Height" Value="8"/>
+            <Setter Property="Foreground">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#38BDF8" Offset="0"/>
+                        <GradientStop Color="#2DD4BF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid>
+                            <Border x:Name="PART_Track" CornerRadius="4" Background="#1FFFFFFF"/>
+                            <Border x:Name="PART_Indicator" CornerRadius="4" HorizontalAlignment="Left"
+                                    Background="{TemplateBinding Foreground}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate DataType="{x:Type m:Metric}">
+            <Border Style="{StaticResource Card}" Margin="6">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*" MinHeight="170"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="56"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="9" Height="9" Fill="{Binding Accent}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" Foreground="#F1F5F9"/>
+                    </StackPanel>
+
+                    <c:ArcGauge Grid.Row="1" Margin="0,6"
+                                Value="{Binding Value}" Maximum="{Binding Maximum}"
+                                Warn="{Binding Warn}" Hot="{Binding Hot}" Unit="{Binding Unit}"/>
+
+                    <TextBlock Grid.Row="2" Text="{Binding Detail}" HorizontalAlignment="Center"
+                               FontSize="12.5" Foreground="#94A3B8" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Row="3" Text="{Binding Detail2}" HorizontalAlignment="Center"
+                               FontSize="12.5" Foreground="#64748B" Margin="0,2,0,8" TextTrimming="CharacterEllipsis"/>
+
+                    <c:Sparkline Grid.Row="4" Values="{Binding History}" Stroke="{Binding Accent}"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type m:FanItem}">
+            <Grid Margin="0,0,0,14">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid>
+                    <TextBlock Text="{Binding Name}" FontSize="13" Foreground="#CBD5E1"/>
+                    <TextBlock Text="{Binding RpmText}" FontSize="13" FontWeight="SemiBold"
+                               HorizontalAlignment="Right" Foreground="#F1F5F9"/>
+                </Grid>
+                <ProgressBar Grid.Row="1" Style="{StaticResource Slim}" Margin="0,6,0,0"
+                             Minimum="0" Maximum="{Binding Maximum}" Value="{Binding Rpm}"/>
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Border CornerRadius="22" BorderBrush="#22FFFFFF" BorderThickness="1" Margin="8">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="0" Opacity="0.55" Color="Black"/>
+        </Border.Effect>
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#0A0F1F" Offset="0"/>
+                <GradientStop Color="#111A36" Offset="0.55"/>
+                <GradientStop Color="#1A1238" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.Background>
+
+        <Grid Margin="22,14,22,18">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Barra de título propia: se arrastra desde acá -->
+            <Grid x:Name="TitleBar" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Vibe Wise" FontSize="22" FontWeight="Bold">
+                        <TextBlock.Foreground>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#38BDF8" Offset="0"/>
+                                <GradientStop Color="#A78BFA" Offset="1"/>
+                            </LinearGradientBrush>
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                    <TextBlock Text="Monitor de hardware" FontSize="14" Foreground="#64748B"
+                               VerticalAlignment="Bottom" Margin="12,0,0,3"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="UnitButton" Style="{StaticResource IconButton}" Content="°C"
+                            FontWeight="SemiBold" ToolTip="Alternar °C / °F" Click="UnitButton_Click"/>
+                    <Button x:Name="PinButton" Style="{StaticResource IconButton}" Content="📌"
+                            ToolTip="Mantener siempre visible" Click="PinButton_Click" Opacity="0.5"/>
+                    <Button Style="{StaticResource IconButton}" Content="—" ToolTip="Minimizar" Click="Minimize_Click"/>
+                    <Button Style="{StaticResource IconButton}" Content="✕" ToolTip="Cerrar" Click="Close_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <ItemsControl x:Name="MetricsList" Grid.Row="1" Margin="-6,14,-6,0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="1"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+
+            <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,6,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                        <Ellipse Width="9" Height="9" Fill="#A78BFA" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Ventiladores" FontSize="15" FontWeight="SemiBold" Foreground="#F1F5F9"/>
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <Grid>
+                            <ItemsControl x:Name="FanList">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="2"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Margin" Value="0,0,24,0"/>
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                            </ItemsControl>
+                            <TextBlock x:Name="NoFans" Visibility="Collapsed" Foreground="#64748B" FontSize="13"
+                                       Text="No se detectaron ventiladores con lectura de RPM."/>
+                        </Grid>
+                    </ScrollViewer>
+                    <TextBlock x:Name="StatusText" Grid.Row="2" Margin="0,8,0,0" FontSize="12"
+                               Foreground="#64748B" Text="Iniciando sensores…"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>
