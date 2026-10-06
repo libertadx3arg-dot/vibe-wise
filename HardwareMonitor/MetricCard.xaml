@@ -1,0 +1,23 @@
+<UserControl x:Class="VibeWise.HardwareMonitor.MetricCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:VibeWise.HardwareMonitor.Controls">
+    <Border Style="{StaticResource Card}" Margin="6">
+        <DockPanel LastChildFill="True">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                <Ellipse Width="9" Height="9" Fill="{Binding Accent}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" Foreground="#F1F5F9"/>
+            </StackPanel>
+
+            <c:Sparkline DockPanel.Dock="Bottom" Height="56" Values="{Binding History}" Stroke="{Binding Accent}"/>
+            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Detail2}" HorizontalAlignment="Center"
+                       FontSize="12.5" Foreground="#64748B" Margin="0,2,0,8" TextTrimming="CharacterEllipsis"/>
+            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Detail}" HorizontalAlignment="Center"
+                       FontSize="12.5" Foreground="#94A3B8" TextTrimming="CharacterEllipsis"/>
+
+            <c:ArcGauge MinHeight="170" Margin="0,6"
+                        Value="{Binding Value}" Maximum="{Binding Maximum}"
+                        Warn="{Binding Warn}" Hot="{Binding Hot}" Unit="{Binding Unit}"/>
+        </DockPanel>
+    </Border>
+</UserControl>
