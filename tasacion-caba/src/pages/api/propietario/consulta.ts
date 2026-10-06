@@ -6,6 +6,8 @@ import { SITIO } from '../../../config/sitio';
 import { BARRIOS_CABA } from '../../../config/barrios';
 import { calcularValuacion } from '../../../lib/valuacion/calculo';
 import { generarInforme } from '../../../lib/ai';
+import type { CacheInformes } from '../../../lib/ai/tipos';
+import { avisarTelegram, textoNuevoPropietario } from '../../../lib/notificaciones/telegram';
 import { clienteServidor } from '../../../lib/db/supabase';
 import { limitePorIp, verificarTurnstile } from '../../../lib/seguridad/antispam';
 
@@ -14,6 +16,7 @@ const ESTADOS = ['habitada', 'vacia', 'alquilada'];
 const SINO = ['si', 'no', 'no_se'];
 const PLAZOS = ['ya', '6_meses', '1_anio', 'solo_saber'];
 
+const cacheMemoria = new Map<string, string>();
 const json = (obj: unknown, status = 200) =>
   new Response(JSON.stringify(obj), { status, headers: { 'content-type': 'application/json' } });
 
@@ -64,8 +67,18 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
   }
 
   const resultado = calcularValuacion({ superficieTerreno: supTerreno, protegido: protegido as any }, valores, SITIO.margenRango, SITIO.ajusteLoteChico);
+  // Caché de informes de IA: en la base si hay, si no en memoria.
+  const cache: CacheInformes = db
+    ? {
+        get: async (k) => (await db.from('informes_cache').select('informe').eq('hash', k).maybeSingle()).data?.informe ?? null,
+        set: async (k, informe) => { await db.from('informes_cache').upsert({ hash: k, informe }); },
+      }
+    : {
+        get: async (k) => cacheMemoria.get(k) ?? null,
+        set: async (k, v) => { cacheMemoria.set(k, v); },
+      };
   // A la IA / plantilla solo van datos del inmueble, nunca nombre, teléfono ni email.
-  const informe = await generarInforme({ barrio: barrio.nombre, tipo, superficieTerreno: supTerreno, resultado }, env);
+  const { texto: informe } = await generarInforme({ barrio: barrio.nombre, tipo, superficieTerreno: supTerreno, resultado }, env, cache);
 
   if (db) {
     const { error } = await db.from('propietarios').insert({
@@ -77,6 +90,12 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
   } else {
     console.warn('[modo prueba] Supabase sin configurar: la consulta NO se guardó.');
   }
+
+  // Aviso a Telegram (sin nombre, teléfono ni email). Si falla, la consulta igual sigue.
+  const rango = resultado.tipo === 'ok'
+    ? `USD ${resultado.minUsd.toLocaleString('es-AR')} – ${resultado.maxUsd.toLocaleString('es-AR')}`
+    : resultado.tipo === 'protegido' ? 'Protegido (sin precio)' : resultado.tipo === 'sin_superficie' ? 'Sin superficie (sin precio)' : 'Barrio PENDIENTE (sin precio)';
+  await avisarTelegram(env, textoNuevoPropietario(env, { barrio: barrio.nombre, tipo, supTerreno, rango, plazo }));
 
   const wa = (env.PUBLIC_WHATSAPP_NUMERO ?? '').replace(/\D/g, '');
   const mensaje = `Hola, consulté la estimación de mi ${tipo.toLowerCase()} en ${barrio.nombre} y quiero hablar con un asesor.`;

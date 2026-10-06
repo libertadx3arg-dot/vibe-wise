@@ -52,3 +52,11 @@ ni `oportunidades.propietario_id`. Dejar el test escrito.
 - **PENDIENTE:** autocompletado USIG y datos de parcela. El entorno bloqueó `servicios.usig.buenosaires.gob.ar` (403 de la red del sandbox),
   así que no se verificó ningún endpoint. Hoy el usuario escribe la dirección y elige el barrio de una lista.
 - **PENDIENTE:** el aviso por Telegram de "nuevo propietario" es de la Fase 4. Límite por IP en memoria (débil): endurecer en Fase 7.
+
+## Estado de la Fase 4 (hecha, falta probar con claves reales)
+- `src/lib/ai/`: Gemini / Claude / OpenAI por `AI_PROVIDER`, `AI_MODEL`, `AI_API_KEY`. Sin las tres, o con `AI_MODEL` vacío, usa la plantilla.
+  Timeout 12 s, caché por hash de los datos del inmueble (tabla `informes_cache`; en memoria si no hay Supabase). La plantilla de respaldo no se cachea.
+- `src/lib/notificaciones/telegram.ts`: avisos de nuevo propietario (ya conectado en `/api/propietario/consulta`),
+  y textos listos para nuevo desarrollador y "Me interesa" (se conectan en la Fase 5).
+- `npm test`: 17 tests con respuestas simuladas. **Nunca se llamó a Gemini ni a Telegram de verdad** (el sandbox no tiene salida a esos hosts): falta la prueba real con las claves del usuario.
+- No se inventó ningún nombre de modelo: `AI_MODEL` lo carga el usuario según su cuenta de AI Studio.

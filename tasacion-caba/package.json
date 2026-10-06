@@ -7,7 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "test": "node --experimental-strip-types --test src/lib/valuacion/calculo.test.ts"
+    "test": "node --experimental-strip-types --test src/lib/valuacion/calculo.test.ts src/lib/ai/ai.test.ts"
   },
   "dependencies": {
     "astro": "^5.0.0",

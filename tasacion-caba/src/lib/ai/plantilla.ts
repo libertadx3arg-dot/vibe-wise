@@ -1,7 +1,7 @@
 // Informe armado con texto fijo. Se usa siempre en la Fase 3 y como respaldo cuando falla la IA.
 // Reglas: tono profesional, sin promesas, 3–5 párrafos simples.
-import type { DatosInforme } from './tipos';
-import { SITIO } from '../../config/sitio';
+import type { DatosInforme } from './tipos.ts';
+import { SITIO } from '../../config/sitio.ts';
 
 const usd = (n: number) => 'USD ' + n.toLocaleString('es-AR');
 

@@ -52,3 +52,11 @@ alter table desarrolladores enable row level security;
 alter table oportunidades enable row level security;
 alter table intereses enable row level security;
 -- TODO: políticas. Sugerido: catálogo vía vista/función que no expone propietario_id.
+
+-- Caché de informes generados por IA (clave = hash de los datos del inmueble; sin datos personales).
+create table informes_cache (
+  hash text primary key,
+  informe text not null,
+  creado_en timestamptz default now()
+);
+alter table informes_cache enable row level security;
