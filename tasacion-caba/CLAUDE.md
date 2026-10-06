@@ -35,7 +35,7 @@ Esta carpeta ya tiene la **estructura**; tu trabajo es completarla fase por fase
 | `supabase/migrations/` | esquema + RLS | 2, 7 |
 
 ## Pendiente de Fase 1 (decide el usuario)
-- 3 nombres de marca + chequeo de `.com.ar` en nic.ar (no comprar).
+- Marca elegida: **Plano Base** (planobase.com.ar libre al 06/10/2026; registrarlo en nic.ar antes de publicar, cuesta plata: avisar).
 - Lista de cuentas gratis a crear: Cloudflare, Supabase, Google AI Studio, Telegram (@BotFather).
 
 ## Fase 7 – seguridad
