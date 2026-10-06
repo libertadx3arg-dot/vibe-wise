@@ -1,0 +1,15 @@
+---
+import { SITIO } from '../config/sitio';
+const { titulo = SITIO.marca, descripcion = '' } = Astro.props;
+---
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title><meta name="description" content={descripcion} />
+    <link rel="stylesheet" href="/estilos.css" />
+  </head>
+  <body>
+    <main><slot /></main>
+    <footer>{SITIO.pie} · <a href="/privacidad">Privacidad</a> · <a href="/terminos">Términos</a></footer>
+  </body>
+</html>
