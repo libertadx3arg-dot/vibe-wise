@@ -24,3 +24,4 @@ Abrí http://localhost:4321. Sin cuentas conectadas, las consultas no se guardan
 - Para verlo como en un celular: `F12` en Chrome o Edge y el ícono de celular/tablet.
 - La barra oscura que aparece abajo es de desarrollo; en la web publicada no está.
 - Para correr las pruebas automáticas: `npm test`.
+- Si después de `Ctrl + C` la web sigue abierta en el navegador, escribí `npx astro dev stop`.

@@ -27,23 +27,25 @@
 5. **Ojo con los emails:** el envío de emails que trae Supabase por defecto tiene un límite muy bajo y está pensado para pruebas. Para uso real conviene configurar un servicio de envío propio (SMTP) en Authentication → SMTP. Hay servicios con plan gratis; verificá sus límites actuales.
 6. Para que Supabase no se pause por inactividad, seguí `docs/MANTENER-SUPABASE.md`.
 
-## 3. Cloudflare Pages
+## 3. Cloudflare (Workers, plan gratis)
 1. Subí el proyecto a un repositorio de GitHub (puede ser este).
-2. En Cloudflare: **Workers & Pages → Create → Pages → Connect to Git** y elegí el repositorio.
+2. En Cloudflare: **Workers & Pages → Create → Import a repository (Git)** y elegí el repositorio.
 3. Configuración de compilación:
    - *Root directory*: `tasacion-caba` (si el proyecto está dentro de otra carpeta)
    - *Build command*: `npm run build`
-   - *Build output directory*: `dist`
-   - Variable `NODE_VERSION` = `22`
-4. En **Settings → Variables and secrets** cargá las del archivo `.env.example`:
-   - Marcá como **secreto**: `SUPABASE_SERVICE_ROLE_KEY`, `AI_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TURNSTILE_SECRET_KEY`.
+   - *Deploy command*: `npx wrangler deploy`
+   - Variable de compilación `NODE_VERSION` = `22`
+4. En **Settings → Variables and secrets** cargá las del archivo `.env.example`. Se cargan **todas ahí, en un solo lugar**:
+   - Tipo **Secret**: `SUPABASE_SERVICE_ROLE_KEY`, `AI_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TURNSTILE_SECRET_KEY`.
+   - Tipo *Text*: el resto (`PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`, `PUBLIC_SITE_URL`, `ADMIN_EMAIL`, `AI_PROVIDER`, `AI_MODEL`, `PUBLIC_TURNSTILE_SITE_KEY`, `TELEGRAM_CHAT_ID`, `PUBLIC_WHATSAPP_NUMERO`).
    - `PUBLIC_SITE_URL` = la dirección final de tu web. `ADMIN_EMAIL` = tu email.
    - **No** cargues `DEMO_MODE` jamás.
 5. **Turnstile** (anti-spam): en el panel de Cloudflare creá un *widget*, copiá la *site key* a `PUBLIC_TURNSTILE_SITE_KEY` y la *secret key* a `TURNSTILE_SECRET_KEY`.
-6. La compilación puede mostrar un aviso sobre un "SESSION binding" y otro sobre "sharp": no los usamos, se pueden ignorar.
+6. **Publicá siempre desde la conexión con GitHub** (como arriba), no desde tu compu: tu `.env` de pruebas nunca debe viajar. Si alguna vez publicás a mano con `npx wrangler deploy`, antes borrá `dist/server/.dev.vars`.
+7. Durante la compilación pueden aparecer avisos sobre "Request.cf" o proxys: son inofensivos.
 
 ## 4. Dominio
-Cuando decidas registrar `planobase.com.ar` en https://nic.ar (tiene costo), te acompaño para apuntarlo a Cloudflare Pages.
+Cuando decidas registrar `planobase.com.ar` en https://nic.ar (tiene costo), te acompaño para apuntarlo a tu Worker de Cloudflare.
 
 ## 5. Probar la seguridad (obligatorio antes de abrirlo)
 Desde la carpeta `tasacion-caba`, con tu sitio ya publicado:

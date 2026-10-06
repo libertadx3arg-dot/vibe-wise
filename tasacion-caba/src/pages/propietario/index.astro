@@ -2,7 +2,8 @@
 import Base from '../../layouts/Base.astro';
 import { SITIO } from '../../config/sitio';
 import { BARRIOS_CABA } from '../../config/barrios';
-const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
+import { getEnv } from '../../lib/env';
+const siteKey = getEnv(Astro.locals).PUBLIC_TURNSTILE_SITE_KEY ?? '';
 ---
 <Base titulo="Estimá el valor de tu terreno" descripcion="Respondé unas preguntas simples y recibí un rango estimado de cuánto podría valer tu casa o terreno en CABA para un desarrollador.">
   <div class="progreso" aria-hidden="true"><div id="barra"></div></div>

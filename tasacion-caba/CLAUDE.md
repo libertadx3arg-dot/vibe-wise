@@ -10,7 +10,7 @@ Esta carpeta ya tiene la **estructura**; tu trabajo es completarla fase por fase
 - Sin promesas en los textos.
 
 ## Stack elegido
-- **Astro** (páginas rápidas, buen SEO) en **Cloudflare Pages/Workers** (gratis, permite uso comercial).
+- **Astro 7** (páginas rápidas, buen SEO) en **Cloudflare Workers** (`@astrojs/cloudflare` 14; las variables se leen con `getEnv()` → `cloudflare:workers`) (gratis, permite uso comercial).
 - **Supabase**: base de datos + login con link mágico. El plan gratis pausa tras ~1 semana sin uso →
   armar un Cron Trigger de Cloudflare que haga una consulta diaria (avisar al usuario).
 - **Cloudflare Turnstile** + límite por IP para anti-spam.
@@ -75,3 +75,13 @@ ni `oportunidades.propietario_id`. Dejar el test escrito.
 - Guías para el usuario: `docs/VER-EN-MI-COMPU.md`, `docs/GUIA-PANEL.md`, `docs/PUBLICAR.md`, `docs/MANTENER-SUPABASE.md`.
 - **Nunca probado de verdad:** envío real de emails de Supabase, Turnstile, Gemini, Telegram, y el despliegue en Cloudflare (sin cuentas ni salida de red en el sandbox).
 - **PENDIENTE del usuario:** valores por barrio, revisión legal, datos legales en `sitio.ts`, WhatsApp, dominio.
+
+## Migración a Astro 7 (hecha) y verificaciones de producción
+- Se migró de Astro 5 + `@astrojs/cloudflare` 12 a **Astro 7 + `@astrojs/cloudflare` 14** porque Astro 5.18.2 (última 5.x) tiene avisos de seguridad que solo se arreglan en 6/7.
+  `npm audit --omit=dev` → **0 vulnerabilidades**.
+- Cambios por la migración: el adaptador publica en **Workers** (no Pages); `locals.runtime.env` ya no existe → `src/lib/env.ts` usa `import { env } from 'cloudflare:workers'`;
+  `session: false` en `astro.config.mjs` (no usamos sesiones de Astro, evita pedir un KV); `wrangler.toml` mínimo (sin `pages_build_output_dir`).
+- Toda la configuración se lee en tiempo de ejecución con `getEnv()` (incluida `PUBLIC_TURNSTILE_SITE_KEY`), así se carga en un solo lugar del panel de Cloudflare.
+- Probado en la versión compilada (`astro preview`): la CSP estricta no bloquea nada propio. Turnstile y los emails/APIs reales no se pudieron probar (sandbox sin salida).
+- `dist/server/.dev.vars` copia el `.env` local al compilar: nunca publicar desde una compu con secretos reales (ver `docs/PUBLICAR.md`).
+- Sandbox: para correr Astro contra el Supabase falso hay que quitar las variables de proxy; los mensajes "Request.cf"/"Request was cancelled" al compilar son del entorno.

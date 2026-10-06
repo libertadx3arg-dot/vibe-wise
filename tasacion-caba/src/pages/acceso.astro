@@ -1,8 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
+import { getEnv } from '../lib/env';
 const rol = ['desarrollador', 'propietario', 'admin'].includes(Astro.url.searchParams.get('rol') ?? '') ? Astro.url.searchParams.get('rol')! : 'propietario';
 const next = Astro.url.searchParams.get('next') ?? '';
-const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
+const siteKey = getEnv(Astro.locals).PUBLIC_TURNSTILE_SITE_KEY ?? '';
 const titulos: Record<string, string> = { admin: 'Ingreso al panel', desarrollador: 'Ingreso de desarrolladores', propietario: 'Ver mis informes' };
 ---
 <Base titulo={titulos[rol]}>

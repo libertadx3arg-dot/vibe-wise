@@ -1,5 +1,6 @@
-// Lee variables de entorno tanto en Cloudflare (producción) como en tu compu (.env).
-export function getEnv(locals?: any): Record<string, string | undefined> {
-  const cf = locals?.runtime?.env ?? {};
-  return { ...(import.meta.env as Record<string, string | undefined>), ...cf };
+// Lee variables de entorno: en Cloudflare (secretos y variables del panel) y en tu compu (.env).
+import { env as cloudflare } from 'cloudflare:workers';
+
+export function getEnv(_locals?: unknown): Record<string, string | undefined> {
+  return { ...(import.meta.env as Record<string, string | undefined>), ...(cloudflare as unknown as Record<string, string | undefined>) };
 }

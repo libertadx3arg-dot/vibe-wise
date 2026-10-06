@@ -1,7 +1,8 @@
 ---
 import { BARRIOS_CABA } from '../config/barrios';
+import { getEnv } from '../lib/env';
 const { modo = 'registro', perfil = null } = Astro.props as { modo?: 'registro' | 'perfil'; perfil?: any };
-const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
+const siteKey = getEnv(Astro.locals).PUBLIC_TURNSTILE_SITE_KEY ?? '';
 const sel = (b: string) => (perfil?.barrios ?? []).includes(b);
 const v = (k: string) => perfil?.[k] ?? '';
 ---

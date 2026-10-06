@@ -6,6 +6,8 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare(),
   site: 'https://planobase.com.ar',
+  // Este sitio no usa sesiones de Astro (el login lo maneja Supabase): evita pedir un almacén KV en Cloudflare.
+  session: false,
   // Sin scripts incrustados en el HTML: permite una política de seguridad (CSP) estricta.
   vite: { build: { assetsInlineLimit: 0 } },
 });

@@ -12,8 +12,8 @@
     "test": "node --experimental-strip-types --test src/lib/valuacion/calculo.test.ts src/lib/ai/ai.test.ts src/lib/negocio/negocio.test.ts"
   },
   "dependencies": {
-    "astro": "^5.0.0",
-    "@astrojs/cloudflare": "^12.0.0",
+    "astro": "^7.3.5",
+    "@astrojs/cloudflare": "^14.3.3",
     "@supabase/supabase-js": "^2.45.0"
   }
 }
