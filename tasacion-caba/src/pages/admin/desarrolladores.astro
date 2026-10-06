@@ -1,7 +1,34 @@
 ---
-import Base from '../../layouts/Base.astro';
+import Admin from '../../layouts/Admin.astro';
+import { getEnv } from '../../lib/env';
+import { clienteServidor } from '../../lib/db/supabase';
+const db = clienteServidor(getEnv(Astro.locals));
+const { data } = db ? await db.from('desarrolladores').select('*').order('creado_en', { ascending: false }).limit(300) : { data: [] };
+const filas: any[] = (data ?? []).sort((a: any, b: any) => (a.estado === 'pendiente' ? -1 : 0) - (b.estado === 'pendiente' ? -1 : 0));
+const ETQ: Record<string, string> = { pendiente: 'Pendiente', aprobado: 'Aprobado', rechazado: 'Rechazado' };
+const wa = (t: string) => 'https://wa.me/' + t.replace(/\D/g, '');
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 6: Desarrolladores: aprobar/rechazar -->
-</Base>
+<Admin titulo="Desarrolladores">
+  {!db && <p class="aviso">La base de datos no está configurada.</p>}
+  {db && filas.length === 0 && <p class="aviso">Todavía no hay desarrolladores registrados.</p>}
+  <div class="tarjetas">
+    {filas.map((d) => (
+      <article class="tarjeta">
+        <span class={`etiqueta ${d.estado}`}>{ETQ[d.estado]}</span>
+        <h2>{d.empresa}</h2>
+        <p>{d.nombre} · <a href={wa(d.whatsapp)} target="_blank" rel="noopener">{d.whatsapp}</a> · <a href={`mailto:${d.email}`}>{d.email}</a>{d.cuit ? ` · CUIT ${d.cuit}` : ''}</p>
+        <dl>
+          <dt>Barrios</dt><dd>{d.barrios?.length ? d.barrios.join(', ') : 'Cualquiera'}</dd>
+          <dt>Terreno</dt><dd>{d.m2_terreno_min ?? '—'} a {d.m2_terreno_max ?? '—'} m²</dd>
+          <dt>m² construibles buscados</dt><dd>{d.m2_construibles_buscados ?? '—'}</dd>
+          <dt>Presupuesto / proyecto</dt><dd>{d.presupuesto_usd ? 'USD ' + Number(d.presupuesto_usd).toLocaleString('es-AR') : '—'} · {d.tipo_proyecto ?? '—'}</dd>
+        </dl>
+        <div class="botonera">
+          {d.estado !== 'aprobado' && <button class="btn" data-api="/api/admin/desarrollador" data-json={JSON.stringify({ id: d.id, estado: 'aprobado' })}>Aprobar</button>}
+          {d.estado !== 'rechazado' && <button class="btn sec" data-api="/api/admin/desarrollador" data-confirmar="¿Rechazar a este desarrollador?" data-json={JSON.stringify({ id: d.id, estado: 'rechazado' })}>Rechazar</button>}
+          {d.estado !== 'pendiente' && <button class="btn sec" data-api="/api/admin/desarrollador" data-json={JSON.stringify({ id: d.id, estado: 'pendiente' })}>Volver a pendiente</button>}
+        </div>
+      </article>
+    ))}
+  </div>
+</Admin>

@@ -1,7 +1,38 @@
 ---
-import Base from '../../layouts/Base.astro';
+import Admin from '../../layouts/Admin.astro';
+import { getEnv } from '../../lib/env';
+import { clienteServidor } from '../../lib/db/supabase';
+const db = clienteServidor(getEnv(Astro.locals));
+const { data } = db ? await db.from('propietarios').select('*').order('creado_en', { ascending: false }).limit(300) : { data: [] };
+const filas: any[] = data ?? [];
+const usd = (n: number) => 'USD ' + Number(n).toLocaleString('es-AR');
+const resumen = (r: any) => !r ? '—' : r.tipo === 'ok' ? `${usd(r.minUsd)} – ${usd(r.maxUsd)} · ${r.m2Construibles} m² construibles` : r.tipo === 'protegido' ? 'Protegido (sin precio)' : r.tipo === 'sin_superficie' ? 'Sin superficie' : `Sin precio (barrio PENDIENTE)${r.m2Construibles ? ' · ' + r.m2Construibles + ' m²' : ''}`;
+const PLAZOS: Record<string, string> = { ya: 'Ya', '6_meses': '6 meses', '1_anio': '1 año', solo_saber: 'Solo quiere saber' };
+const ESTADOS = [['nuevo', 'Nuevo'], ['contactado', 'Contactado'], ['en_proceso', 'En proceso'], ['descartado', 'Descartado']];
+const wa = (t: string) => 'https://wa.me/' + t.replace(/\D/g, '');
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 6: Propietarios: estado, notas -->
-</Base>
+<Admin titulo="Propietarios">
+  {!db && <p class="aviso">La base de datos no está configurada.</p>}
+  {db && filas.length === 0 && <p class="aviso">Todavía no hay propietarios.</p>}
+  <div class="tarjetas">
+    {filas.map((p) => (
+      <article class="tarjeta">
+        <h2>{p.nombre} <small class="chico-gris">· {new Date(p.creado_en).toLocaleDateString('es-AR')}</small></h2>
+        <p><a href={wa(p.whatsapp)} target="_blank" rel="noopener">{p.whatsapp}</a> · <a href={`mailto:${p.email}`}>{p.email}</a></p>
+        <dl>
+          <dt>Propiedad</dt><dd>{p.tipo} · {p.direccion} · {p.barrio}</dd>
+          <dt>Superficie</dt><dd>Terreno {p.sup_terreno ?? '?'} m² · Construida {p.sup_construida ?? '?'} m²</dd>
+          <dt>Estimación</dt><dd>{resumen(p.resultado)}</dd>
+          <dt>Plazo / dueños / sucesión / protegida</dt><dd>{PLAZOS[p.plazo] ?? '—'} · {p.mas_duenos ?? '—'} · {p.sucesion ?? '—'} · {p.protegido ?? '—'}</dd>
+        </dl>
+        <form data-api="/api/admin/propietario">
+          <input type="hidden" name="id" value={p.id}>
+          <label>Estado <select name="estado">{ESTADOS.map(([v, t]) => <option value={v} selected={p.estado === v}>{t}</option>)}</select></label>
+          <label>Notas <textarea name="notas" rows="2" maxlength="2000">{p.notas ?? ''}</textarea></label>
+          <div class="botonera"><button class="btn sec" type="submit">Guardar</button>
+            <button class="btn sec" type="button" data-api="/api/admin/oportunidad" data-json={JSON.stringify({ accion: 'crear', id: p.id })}>Crear oportunidad</button></div>
+        </form>
+      </article>
+    ))}
+  </div>
+</Admin>

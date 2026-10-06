@@ -1,0 +1,25 @@
+---
+export const prerender = true;
+import Base from '../../layouts/Base.astro';
+import { SITIO } from '../../config/sitio';
+import { BARRIOS_CABA } from '../../config/barrios';
+import { slugBarrio } from '../../lib/barrios-url';
+export function getStaticPaths() { return BARRIOS_CABA.map((b) => ({ params: { barrio: slugBarrio(b.nombre) }, props: { nombre: b.nombre } })); }
+const { nombre } = Astro.props;
+---
+<Base titulo={`¿Cuánto vale mi terreno en ${nombre}?`} descripcion={`Estimación orientativa de cuánto podría valer tu casa o terreno en ${nombre} (CABA) para un desarrollador inmobiliario.`}>
+  <h1>¿Cuánto vale mi terreno en {nombre}?</h1>
+  <p class="bajada">Estimación orientativa, en pocos minutos, para casas y terrenos en {nombre}, Ciudad de Buenos Aires.</p>
+  <a class="boton-grande" href={`/propietario?barrio=${encodeURIComponent(nombre)}`}>Estimar mi propiedad en {nombre}<small>Gratis y sin compromiso</small></a>
+  <h2>Cómo se calcula</h2>
+  <p>Un desarrollador no paga solo por el terreno: paga por los metros que puede construir en él. Por eso la estimación parte de la superficie del lote, la cantidad de metros construibles que permite la normativa en la zona, y el valor de referencia por metro construible en el barrio. El resultado es un <strong>rango</strong>, nunca un número único.</p>
+  <h2>Qué puede cambiar el valor</h2>
+  <ul>
+    <li>La superficie y la forma del lote (un frente angosto o un lote muy chico suelen interesar menos).</li>
+    <li>Si el inmueble está catalogado o en una zona de protección patrimonial: en ese caso las reglas cambian y hace falta una evaluación personalizada.</li>
+    <li>Si hay más de un dueño o una sucesión en curso: puede afectar los tiempos de una venta.</li>
+    <li>El estado de ocupación: habitada, vacía o alquilada.</li>
+  </ul>
+  <p class="aviso">{SITIO.avisoNoTasacion}</p>
+  <p><a href="/terreno">Ver otros barrios</a></p>
+</Base>

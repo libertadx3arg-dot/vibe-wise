@@ -1,7 +1,41 @@
 ---
-import Base from '../../layouts/Base.astro';
+import Admin from '../../layouts/Admin.astro';
+import { getEnv } from '../../lib/env';
+import { clienteServidor } from '../../lib/db/supabase';
+import { elegirProveedor } from '../../lib/ai';
+const env = getEnv(Astro.locals);
+const db = clienteServidor(env);
+const cuenta = async (tabla: string, f?: (q: any) => any) => {
+  if (!db) return null;
+  const q = db.from(tabla).select('*', { count: 'exact', head: true });
+  return (await (f ? f(q) : q)).count ?? 0;
+};
+const [nuevos, pendientes, publicadas, intereses, barriosPend] = await Promise.all([
+  cuenta('propietarios', (q) => q.eq('estado', 'nuevo')),
+  cuenta('desarrolladores', (q) => q.eq('estado', 'pendiente')),
+  cuenta('oportunidades', (q) => q.eq('publicada', true)),
+  cuenta('intereses'),
+  cuenta('barrios', (q) => q.or('incidencia_usd.is.null,factor_edificabilidad.is.null')),
+]);
+const ia = elegirProveedor(env) ? `${env.AI_PROVIDER} · modelo ${env.AI_MODEL}` : 'Ninguna: se usa el informe de plantilla fija';
+const estado = (ok: boolean) => (ok ? '✅ configurado' : '⚠️ sin configurar');
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 6: Panel: resumen y proveedor IA activo -->
-</Base>
+<Admin titulo="Resumen">
+  <div class="tarjetas">
+    <article class="tarjeta"><h2>{nuevos ?? '–'}</h2><p>Propietarios nuevos</p><a href="/admin/propietarios">Ver</a></article>
+    <article class="tarjeta"><h2>{pendientes ?? '–'}</h2><p>Desarrolladores por aprobar</p><a href="/admin/desarrolladores">Ver</a></article>
+    <article class="tarjeta"><h2>{publicadas ?? '–'}</h2><p>Oportunidades publicadas</p><a href="/admin/oportunidades">Ver</a></article>
+    <article class="tarjeta"><h2>{intereses ?? '–'}</h2><p>Marcas de "Me interesa"</p><a href="/admin/oportunidades">Ver</a></article>
+  </div>
+  {barriosPend ? <p class="aviso">⚠️ Hay <strong>{barriosPend}</strong> barrios con valores PENDIENTES: a los propietarios de esos barrios se les responde "te lo pasamos personalmente". <a href="/admin/barrios">Completar</a></p> : null}
+  <h2>Estado del sistema</h2>
+  <ul>
+    <li><strong>IA activa:</strong> {ia}</li>
+    <li><strong>Base de datos:</strong> {estado(!!db)}</li>
+    <li><strong>Avisos por Telegram:</strong> {estado(!!env.TELEGRAM_BOT_TOKEN && !!env.TELEGRAM_CHAT_ID)}</li>
+    <li><strong>Anti-spam (Turnstile):</strong> {estado(!!env.TURNSTILE_SECRET_KEY)}</li>
+    <li><strong>WhatsApp del asesor:</strong> {estado(!!env.PUBLIC_WHATSAPP_NUMERO)}</li>
+  </ul>
+  <h2>Exportar a CSV</h2>
+  <p><a href="/api/admin/exportar-csv?tabla=propietarios">Propietarios</a> · <a href="/api/admin/exportar-csv?tabla=desarrolladores">Desarrolladores</a> · <a href="/api/admin/exportar-csv?tabla=oportunidades">Oportunidades</a> · <a href="/api/admin/exportar-csv?tabla=intereses">"Me interesa"</a></p>
+</Admin>

@@ -1,0 +1,36 @@
+---
+import Base from './Base.astro';
+const { titulo } = Astro.props;
+const ruta = Astro.url.pathname;
+const links = [['/admin', 'Resumen'], ['/admin/propietarios', 'Propietarios'], ['/admin/desarrolladores', 'Desarrolladores'], ['/admin/oportunidades', 'Oportunidades'], ['/admin/barrios', 'Barrios']];
+---
+<Base titulo={`${titulo} · Panel`} ancho noindex>
+  <nav class="nav-admin" aria-label="Panel">
+    {links.map(([h, t]) => <a href={h} aria-current={ruta === h ? 'page' : undefined}>{t}</a>)}
+    <button type="button" id="salir" class="nav-salir">Salir</button>
+  </nav>
+  <h1>{titulo}</h1>
+  <p id="aviso-admin" class="aviso" role="status" hidden></p>
+  <slot />
+  <script>
+    // Formularios y botones del panel: mandan JSON a /api/admin/... y recargan la página.
+    const aviso = document.getElementById('aviso-admin')!;
+    const mostrar = (t: string) => { aviso.textContent = t; aviso.hidden = false; aviso.scrollIntoView({ block: 'nearest' }); };
+    async function enviar(url: string, cuerpo: unknown) {
+      const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(cuerpo) });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) location.reload(); else mostrar(j.error || 'No se pudo guardar.');
+    }
+    document.querySelectorAll<HTMLFormElement>('form[data-api]').forEach((f) => f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const o: Record<string, unknown> = {};
+      new FormData(f).forEach((v, k) => (o[k] = v));
+      enviar(f.dataset.api!, o);
+    }));
+    document.querySelectorAll<HTMLButtonElement>('button[data-api]').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.confirmar && !confirm(b.dataset.confirmar)) return;
+      enviar(b.dataset.api!, JSON.parse(b.dataset.json || '{}'));
+    }));
+    document.getElementById('salir')!.addEventListener('click', async () => { await fetch('/api/auth/salir', { method: 'POST' }); location.href = '/'; });
+  </script>
+</Base>

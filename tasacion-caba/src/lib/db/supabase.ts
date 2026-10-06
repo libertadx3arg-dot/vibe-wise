@@ -8,3 +8,11 @@ export function clienteServidor(env: Record<string, string | undefined>): Supaba
   if (!url || !key) return null;
   return createClient(url, key, { auth: { persistSession: false } });
 }
+
+/** Cliente con la clave pública. Solo se usa para pedir el envío del link mágico por email. */
+export function clienteAnon(env: Record<string, string | undefined>): SupabaseClient | null {
+  const url = env.PUBLIC_SUPABASE_URL;
+  const key = env.PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { persistSession: false, flowType: 'implicit' } });
+}

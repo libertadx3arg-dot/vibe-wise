@@ -160,6 +160,8 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
       btnSig.textContent = actual === pasos.length - 1 ? 'Ver resultado' : 'Siguiente';
       error('');
       window.scrollTo({ top: 0 });
+      // Accesibilidad: al cambiar de paso, el lector de pantalla lee el título nuevo.
+      const h = pasos[actual].querySelector<HTMLElement>('h1'); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
     }
 
     btnAtras.addEventListener('click', () => { actual--; mostrar(); });
@@ -219,6 +221,10 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
 
     form.addEventListener('input', () => error(''));
     form.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') { e.preventDefault(); btnSig.click(); } });
+    // Si vienen desde una página de barrio (?barrio=Palermo), lo dejamos elegido.
+    const pre = new URLSearchParams(location.search).get('barrio');
+    const selBarrio = form.elements.namedItem('barrio') as HTMLSelectElement;
+    if (pre && Array.from(selBarrio.options).some((o) => o.value === pre)) selBarrio.value = pre;
     mostrar();
   </script>
 </Base>

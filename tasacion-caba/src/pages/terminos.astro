@@ -1,7 +1,22 @@
 ---
 import Base from '../layouts/Base.astro';
+import { SITIO } from '../config/sitio';
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 7: Términos (borrador) -->
+<Base titulo="Términos y condiciones" descripcion="Condiciones de uso del sitio." noindex>
+  <p class="borrador"><strong>BORRADOR.</strong> Este texto debe ser revisado por un abogado antes de publicar. Los puntos marcados <mark>[REVISAR]</mark> requieren decisión o verificación legal.</p>
+  <h1>Términos y condiciones</h1>
+  <h2>1. Qué es este sitio</h2>
+  <p>{SITIO.marca} ofrece una estimación orientativa del valor que podría tener una propiedad en la Ciudad de Buenos Aires para un desarrollador inmobiliario, y un espacio para que desarrolladores conozcan oportunidades anónimas. {SITIO.pie}. <mark>[REVISAR: confirmar matrícula]</mark></p>
+  <h2>2. La estimación no es una tasación</h2>
+  <p>{SITIO.avisoNoTasacion} La estimación se calcula con datos que ingresás vos y valores de referencia que pueden no reflejar la situación particular de la propiedad. No constituye una oferta de compra ni garantiza un precio de venta.</p>
+  <h2>3. Uso del sitio</h2>
+  <p>Te comprometés a ingresar datos verdaderos y a no usar el sitio para fines ilícitos ni para sobrecargarlo (por ejemplo, con consultas automáticas).</p>
+  <h2>4. Desarrolladores</h2>
+  <p>El acceso al catálogo requiere aprobación previa y puede ser revocado. La información del catálogo es anónima y orientativa; no puede usarse para identificar ni contactar a los propietarios por fuera de nuestra intermediación. <mark>[REVISAR: cláusula de intermediación y comisiones]</mark></p>
+  <h2>5. Datos personales</h2>
+  <p>El tratamiento de tus datos se rige por la <a href="/privacidad">política de privacidad</a>.</p>
+  <h2>6. Responsabilidad</h2>
+  <p><mark>[REVISAR: límites de responsabilidad]</mark></p>
+  <h2>7. Ley aplicable y jurisdicción</h2>
+  <p>Estos términos se rigen por las leyes de la República Argentina. <mark>[REVISAR: definir jurisdicción]</mark></p>
 </Base>

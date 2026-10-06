@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+const rol = ['desarrollador', 'propietario', 'admin'].includes(Astro.url.searchParams.get('rol') ?? '') ? Astro.url.searchParams.get('rol')! : 'propietario';
+const next = Astro.url.searchParams.get('next') ?? '';
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
+const titulos: Record<string, string> = { admin: 'Ingreso al panel', desarrollador: 'Ingreso de desarrolladores', propietario: 'Ver mis informes' };
+---
+<Base titulo={titulos[rol]}>
+  <h1>{titulos[rol]}</h1>
+  <p class="bajada">Sin contraseña: te mandamos un link a tu email.</p>
+  <form id="f" novalidate data-rol={rol} data-next={next}>
+    <label>Email <input name="email" type="email" autocomplete="email" required></label>
+    {siteKey && <div class="cf-turnstile" data-sitekey={siteKey}></div>}
+    <p id="msg" role="status" class="aviso" hidden></p>
+    <div class="botonera"><button class="btn" id="b" type="submit">Enviarme el link</button></div>
+  </form>
+  {siteKey && <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+  <script>
+    const f = document.getElementById('f') as HTMLFormElement, msg = document.getElementById('msg')!, b = document.getElementById('b') as HTMLButtonElement;
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault(); b.disabled = true; msg.hidden = true;
+      try {
+        const r = await fetch('/api/auth/enviar-link', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
+          email: (f.elements.namedItem('email') as HTMLInputElement).value, rol: f.dataset.rol, next: f.dataset.next || undefined,
+          turnstile: (f.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value }) });
+        const j = await r.json(); msg.textContent = j.mensaje || j.error || 'Listo.';
+      } catch { msg.textContent = 'No pudimos conectar. Probá de nuevo.'; }
+      msg.hidden = false; b.disabled = false;
+    });
+  </script>
+</Base>

@@ -1,0 +1,11 @@
+---
+export const prerender = true;
+import Base from '../../layouts/Base.astro';
+import { BARRIOS_CABA } from '../../config/barrios';
+import { slugBarrio } from '../../lib/barrios-url';
+---
+<Base titulo="Cuánto vale mi terreno por barrio en CABA" descripcion="Elegí tu barrio de la Ciudad de Buenos Aires y estimá cuánto podría valer tu casa o terreno para un desarrollador.">
+  <h1>Elegí tu barrio</h1>
+  <p class="bajada">Estimación orientativa de cuánto podría valer tu propiedad en la Ciudad de Buenos Aires.</p>
+  <ul class="lista-barrios">{BARRIOS_CABA.map((b) => <li><a href={`/terreno/${slugBarrio(b.nombre)}`}>{b.nombre}</a></li>)}</ul>
+</Base>

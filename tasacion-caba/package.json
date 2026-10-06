@@ -7,7 +7,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "test": "node --experimental-strip-types --test src/lib/valuacion/calculo.test.ts src/lib/ai/ai.test.ts"
+    "demo": "node scripts/demo.mjs",
+    "seguridad": "node scripts/probar-seguridad.mjs",
+    "test": "node --experimental-strip-types --test src/lib/valuacion/calculo.test.ts src/lib/ai/ai.test.ts src/lib/negocio/negocio.test.ts"
   },
   "dependencies": {
     "astro": "^5.0.0",

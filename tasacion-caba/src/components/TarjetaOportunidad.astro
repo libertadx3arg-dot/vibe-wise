@@ -1,0 +1,15 @@
+---
+// La misma tarjeta que ve el desarrollador (y la vista previa del panel). Solo recibe columnas anónimas.
+const { o, coincide = false, marcada = false, boton = true } = Astro.props as { o: any; coincide?: boolean; marcada?: boolean; boton?: boolean };
+const usd = (n: number) => 'USD ' + Number(n).toLocaleString('es-AR');
+---
+<article class="tarjeta">
+  {coincide && <span class="etiqueta">Coincide con tu búsqueda</span>}
+  <h2>{o.barrio}</h2>
+  <dl>
+    <dt>Terreno</dt><dd>{o.m2_terreno ? `${o.m2_terreno} m²` : 'A consultar'}</dd>
+    <dt>m² construibles (aprox.)</dt><dd>{o.m2_construibles ? `${o.m2_construibles} m²` : 'A consultar'}</dd>
+    <dt>Rango de precio</dt><dd>{o.min_usd && o.max_usd ? `${usd(o.min_usd)} – ${usd(o.max_usd)}` : 'A consultar'}</dd>
+  </dl>
+  {boton && <button class="btn me-interesa" data-id={o.id} disabled={marcada}>{marcada ? 'Ya nos avisaste ✓' : 'Me interesa'}</button>}
+</article>

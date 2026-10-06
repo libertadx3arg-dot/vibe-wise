@@ -1,0 +1,22 @@
+---
+// Solo existe en MODO DEMO (npm run demo). En producción responde 404: DEMO_MODE nunca se configura ahí.
+import Base from '../layouts/Base.astro';
+import { getEnv } from '../lib/env';
+if (getEnv(Astro.locals).DEMO_MODE !== '1') return new Response(null, { status: 404 });
+---
+<Base titulo="Modo demo" noindex>
+  <h1>Modo demo</h1>
+  <p class="aviso"><strong>Datos inventados.</strong> Esto usa una base falsa en tu compu. No se guarda ni se envía nada real.</p>
+  <div class="opciones">
+    <button class="boton-grande demo" data-token="admintoken" data-ir="/admin">Entrar como administrador<small>Panel completo</small></button>
+    <button class="boton-grande secundario demo" data-token="devtoken" data-ir="/desarrollador/catalogo">Entrar como desarrollador aprobado<small>Catálogo anónimo</small></button>
+    <button class="boton-grande secundario demo" data-token="devpendtoken" data-ir="/desarrollador/catalogo">Entrar como desarrollador pendiente<small>Todavía sin acceso al catálogo</small></button>
+  </div>
+  <p><a href="/propietario">Probar el recorrido del propietario</a> (el barrio Palermo tiene valores de ejemplo y muestra precio).</p>
+  <script>
+    document.querySelectorAll<HTMLButtonElement>('.demo').forEach((b) => b.addEventListener('click', async () => {
+      await fetch('/api/auth/sesion', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ access_token: b.dataset.token, expires_in: 3600 }) });
+      location.href = b.dataset.ir!;
+    }));
+  </script>
+</Base>

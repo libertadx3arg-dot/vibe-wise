@@ -1,7 +1,18 @@
 ---
 import Base from '../../layouts/Base.astro';
+import FormDesarrollador from '../../components/FormDesarrollador.astro';
+import { getEnv } from '../../lib/env';
+import { clienteServidor } from '../../lib/db/supabase';
+const usuario = (Astro.locals as any).usuario;
+if (!usuario) return Astro.redirect('/acceso?rol=desarrollador&next=/desarrollador/perfil');
+const db = clienteServidor(getEnv(Astro.locals));
+const { data: dev } = db ? await db.from('desarrolladores').select('*').eq('email', usuario.email).maybeSingle() : { data: null };
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 5: Perfil de búsqueda -->
+<Base titulo="Mi perfil de búsqueda">
+  <h1>Mi perfil de búsqueda</h1>
+  {dev ? (<>
+    <p class="bajada">{dev.empresa} · Estado: <strong>{dev.estado === 'aprobado' ? 'aprobado' : dev.estado === 'pendiente' ? 'pendiente de aprobación' : 'no aprobado'}</strong></p>
+    <FormDesarrollador modo="perfil" perfil={dev} />
+    <p class="aviso"><a href="/desarrollador/catalogo">Ver catálogo</a></p>
+  </>) : <p>No encontramos un perfil de desarrollador para este email. <a href="/desarrollador">Registrate acá</a>.</p>}
 </Base>

@@ -4,6 +4,10 @@ export const SITIO = {
   pie: 'Corredor responsable · CUCICBA 6990', // PENDIENTE de confirmar
   avisoNoTasacion:
     'Es una estimación orientativa, no una tasación. Para un valor firme hace falta una tasación de un corredor matriculado.',
+  // Datos legales. PENDIENTE: completarlos antes de publicar (aparecen en privacidad y términos).
+  titular: 'PENDIENTE (nombre o razón social)',
+  domicilioLegal: 'PENDIENTE',
+  emailContacto: 'PENDIENTE',
   margenRango: 0.15, // ±15 % sobre el precio central
   // Ajuste por lote chico. PENDIENTE: el corredor define el umbral y el descuento.
   // Mientras haya un null, el ajuste NO se aplica.

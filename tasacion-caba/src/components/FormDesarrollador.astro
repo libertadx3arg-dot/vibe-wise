@@ -1,0 +1,62 @@
+---
+import { BARRIOS_CABA } from '../config/barrios';
+const { modo = 'registro', perfil = null } = Astro.props as { modo?: 'registro' | 'perfil'; perfil?: any };
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
+const sel = (b: string) => (perfil?.barrios ?? []).includes(b);
+const v = (k: string) => perfil?.[k] ?? '';
+---
+<form id="form-dev" novalidate data-modo={modo}>
+  {modo === 'registro' && (<>
+    <h2>Tus datos</h2>
+    <label>Nombre <input name="nombre" autocomplete="name" required></label>
+    <label>Empresa <input name="empresa" autocomplete="organization" required></label>
+    <label>Email <input name="email" type="email" autocomplete="email" required></label>
+    <label>WhatsApp <input name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" required></label>
+    <label>CUIT (opcional) <input name="cuit" inputmode="numeric" placeholder="Solo números"></label>
+  </>)}
+  <h2>Qué buscás</h2>
+  <fieldset><legend>Barrios (podés elegir varios; vacío = cualquiera)</legend>
+    <div class="barrios">
+      {BARRIOS_CABA.map((b) => <label class="check chico"><input type="checkbox" name="barrios" value={b.nombre} checked={sel(b.nombre)}> {b.nombre}</label>)}
+    </div></fieldset>
+  <div class="dos">
+    <label>Terreno mínimo (m²) <input name="m2_terreno_min" inputmode="decimal" value={v('m2_terreno_min')}></label>
+    <label>Terreno máximo (m²) <input name="m2_terreno_max" inputmode="decimal" value={v('m2_terreno_max')}></label>
+  </div>
+  <label>m² construibles buscados (mínimo) <input name="m2_construibles_buscados" inputmode="decimal" value={v('m2_construibles_buscados')}></label>
+  <label>Presupuesto (USD) <input name="presupuesto_usd" inputmode="decimal" value={v('presupuesto_usd')}></label>
+  <label>Tipo de proyecto
+    <select name="tipo_proyecto">
+      <option value="">Sin preferencia</option>
+      {['vivienda', 'oficinas', 'mixto'].map((t) => <option value={t} selected={perfil?.tipo_proyecto === t}>{t[0].toUpperCase() + t.slice(1)}</option>)}
+    </select></label>
+  {siteKey && modo === 'registro' && <div class="cf-turnstile" data-sitekey={siteKey}></div>}
+  <p id="msg-dev" class="aviso" role="status" hidden></p>
+  <div class="botonera"><button class="btn" id="enviar-dev" type="submit">{modo === 'registro' ? 'Enviar solicitud' : 'Guardar cambios'}</button></div>
+</form>
+{siteKey && modo === 'registro' && <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+<script>
+  const f = document.getElementById('form-dev') as HTMLFormElement;
+  const msg = document.getElementById('msg-dev')!, btn = document.getElementById('enviar-dev') as HTMLButtonElement;
+  const val = (n: string) => (f.elements.namedItem(n) as HTMLInputElement | null)?.value.trim() ?? '';
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault(); btn.disabled = true; msg.hidden = true;
+    const cuerpo: Record<string, unknown> = {
+      barrios: Array.from(f.querySelectorAll<HTMLInputElement>('input[name=barrios]:checked')).map((i) => i.value),
+      m2_terreno_min: val('m2_terreno_min'), m2_terreno_max: val('m2_terreno_max'),
+      m2_construibles_buscados: val('m2_construibles_buscados'), presupuesto_usd: val('presupuesto_usd'), tipo_proyecto: val('tipo_proyecto'),
+    };
+    const registro = f.dataset.modo === 'registro';
+    if (registro) {
+      Object.assign(cuerpo, { nombre: val('nombre'), empresa: val('empresa'), email: val('email'), whatsapp: val('whatsapp'), cuit: val('cuit'),
+        turnstile: (f.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value });
+    }
+    try {
+      const r = await fetch(registro ? '/api/desarrollador/registro' : '/api/desarrollador/perfil', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(cuerpo) });
+      const j = await r.json();
+      msg.textContent = j.mensaje || j.error || 'Listo.'; msg.hidden = false;
+      if (r.ok && registro) f.querySelectorAll('input,select,button').forEach((el) => ((el as HTMLInputElement).disabled = true));
+      else btn.disabled = false;
+    } catch { msg.textContent = 'No pudimos conectar. Probá de nuevo.'; msg.hidden = false; btn.disabled = false; }
+  });
+</script>

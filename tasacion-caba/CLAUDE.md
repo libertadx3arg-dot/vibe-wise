@@ -60,3 +60,18 @@ ni `oportunidades.propietario_id`. Dejar el test escrito.
   y textos listos para nuevo desarrollador y "Me interesa" (se conectan en la Fase 5).
 - `npm test`: 17 tests con respuestas simuladas. **Nunca se llamó a Gemini ni a Telegram de verdad** (el sandbox no tiene salida a esos hosts): falta la prueba real con las claves del usuario.
 - No se inventó ningún nombre de modelo: `AI_MODEL` lo carga el usuario según su cuenta de AI Studio.
+
+## Estado de las Fases 5, 6 y 7 (hechas; falta probar con Supabase REAL)
+- **Seguridad por diseño:** todas las tablas con RLS y sin políticas + `revoke` a anon/authenticated. Solo el servidor (clave de servicio)
+  toca la base y filtra columnas. Catálogo = `COLUMNAS_CATALOGO` fija (`src/lib/negocio/desarrolladores.ts`). Nunca agregar columnas de dueño.
+- **Login:** link mágico (implicit flow). `/api/auth/enviar-link` (respuesta genérica), `/auth/callback` → `/api/auth/sesion` (cookies httpOnly `pb_at`/`pb_rt`).
+  Rol = email verificado: admin = `ADMIN_EMAIL`; desarrollador = fila en `desarrolladores`; propietario = filas en `propietarios` (email en minúscula, comparación exacta).
+- `src/middleware.ts`: bloquea escrituras con `Origin` ajeno (CSRF), protege `/admin` y `/api/admin`, pone cabeceras de seguridad y CSP (solo en producción).
+  Cada endpoint admin vuelve a verificar con `exigirAdmin`.
+- Lógica de negocio testeada en `src/lib/negocio/` con una base falsa en memoria (`falsodb.util.ts`). `npm test` = 26 tests.
+- `scripts/supabase-falso.mjs` + `scripts/demo.mjs` (`npm run demo`): Supabase FALSO local con datos inventados para recorrer todo sin cuentas. `/demo` solo existe con `DEMO_MODE=1`.
+- `scripts/probar-seguridad.mjs` (`npm run seguridad`): pruebas contra la web y la clave pública. **Contra el falso solo valida el script; la prueba real de RLS requiere el Supabase verdadero.**
+- En el sandbox, para probar contra el falso hay que lanzar Astro SIN las variables de proxy (`env -u HTTP_PROXY -u http_proxy -u HTTPS_PROXY -u https_proxy ...`), porque el proxy bloquea `localhost`.
+- Guías para el usuario: `docs/VER-EN-MI-COMPU.md`, `docs/GUIA-PANEL.md`, `docs/PUBLICAR.md`, `docs/MANTENER-SUPABASE.md`.
+- **Nunca probado de verdad:** envío real de emails de Supabase, Turnstile, Gemini, Telegram, y el despliegue en Cloudflare (sin cuentas ni salida de red en el sandbox).
+- **PENDIENTE del usuario:** valores por barrio, revisión legal, datos legales en `sitio.ts`, WhatsApp, dominio.

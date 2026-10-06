@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base titulo="Entrando…"><h1>Entrando…</h1><p id="msg" class="bajada">Verificando tu link.</p>
+<script>
+  const h = new URLSearchParams(location.hash.slice(1));
+  const next = new URLSearchParams(location.search).get('next') || '/';
+  const msg = document.getElementById('msg')!;
+  history.replaceState(null, '', location.pathname); // saca los tokens de la barra de direcciones
+  (async () => {
+    if (!h.get('access_token')) { msg.textContent = h.get('error_description') ? 'El link venció o ya se usó. Pedí uno nuevo.' : 'Link inválido.'; return; }
+    const r = await fetch('/api/auth/sesion', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ access_token: h.get('access_token'), refresh_token: h.get('refresh_token'), expires_in: Number(h.get('expires_in')) }) });
+    if (r.ok) location.replace(/^\/(?![\/\\])/.test(next) ? next : '/');
+    else msg.textContent = (await r.json()).error || 'No pudimos iniciar sesión.';
+  })();
+</script></Base>

@@ -1,7 +1,28 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { getEnv } from '../../lib/env';
+import { clienteServidor } from '../../lib/db/supabase';
+import { SITIO } from '../../config/sitio';
+const usuario = (Astro.locals as any).usuario;
+if (!usuario) return Astro.redirect('/acceso?rol=propietario&next=/propietario/mis-informes');
+const db = clienteServidor(getEnv(Astro.locals));
+// Solo se leen los informes cuyo email coincide EXACTO con el email verificado por el link mágico.
+const { data } = db ? await db.from('propietarios').select('id,creado_en,direccion,barrio,tipo,resultado,informe').eq('email', usuario.email).order('creado_en', { ascending: false }) : { data: [] };
+const informes: any[] = data ?? [];
+const usd = (n: number) => 'USD ' + Number(n).toLocaleString('es-AR');
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 3: Login link mágico para volver a ver el informe -->
+<Base titulo="Mis informes" noindex>
+  <h1>Mis informes</h1>
+  {informes.length === 0 && <p class="aviso">No encontramos consultas con el email {usuario.email}. <a href="/propietario">Hacer una consulta</a></p>}
+  {informes.map((i) => (
+    <section class="bloque-op">
+      <h2>{i.tipo} · {i.barrio}</h2>
+      <p class="chico-gris">{new Date(i.creado_en).toLocaleDateString('es-AR')} · {i.direccion}</p>
+      {i.resultado?.tipo === 'ok' && <p class="rango">{usd(i.resultado.minUsd)} – {usd(i.resultado.maxUsd)}</p>}
+      {(i.informe ?? '').split('\n\n').filter((p: string) => p && !p.startsWith('Es una estimación orientativa')).map((p: string) => <p>{p}</p>)}
+    </section>
+  ))}
+  <p class="aviso">{SITIO.avisoNoTasacion}</p>
+  <p><button type="button" id="salir" class="btn sec">Salir</button></p>
+  <script>document.getElementById('salir')!.addEventListener('click', async () => { await fetch('/api/auth/salir', { method: 'POST' }); location.href = '/'; });</script>
 </Base>

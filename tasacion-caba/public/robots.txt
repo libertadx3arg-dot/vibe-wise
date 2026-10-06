@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /acceso
+Disallow: /auth/
+Disallow: /propietario/mis-informes
+Disallow: /desarrollador/catalogo
+Disallow: /desarrollador/perfil
+
+Sitemap: https://planobase.com.ar/sitemap.xml

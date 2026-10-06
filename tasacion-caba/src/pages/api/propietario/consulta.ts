@@ -38,7 +38,7 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
 
   const nombre = texto(b.nombre, 100);
   const whatsapp = texto(b.whatsapp, 30);
-  const email = texto(b.email, 150);
+  const email = texto(b.email, 150).toLowerCase();
   const direccion = texto(b.direccion, 200);
   const barrioNombre = texto(b.barrio, 60);
   const tipo = texto(b.tipo, 30);

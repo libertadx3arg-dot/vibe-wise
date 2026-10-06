@@ -1,7 +1,32 @@
 ---
-import Base from '../../layouts/Base.astro';
+import Admin from '../../layouts/Admin.astro';
+import { getEnv } from '../../lib/env';
+import { clienteServidor } from '../../lib/db/supabase';
+import { BARRIOS_CABA } from '../../config/barrios';
+const db = clienteServidor(getEnv(Astro.locals));
+const { data } = db ? await db.from('barrios').select('nombre,incidencia_usd,factor_edificabilidad') : { data: [] };
+const porNombre = Object.fromEntries((data ?? []).map((b: any) => [b.nombre, b]));
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 6: Editar tabla de barrios -->
-</Base>
+<Admin titulo="Valores por barrio">
+  {!db && <p class="aviso">La base de datos no está configurada.</p>}
+  <p class="bajada">Dos números por barrio. Si dejás uno vacío queda <strong>PENDIENTE</strong> y la web no muestra precio para ese barrio (dice "te lo pasamos personalmente").</p>
+  <ul class="ayuda-lista">
+    <li><strong>Incidencia (USD por m² construible):</strong> cuánto paga un desarrollador por cada m² que puede construir.</li>
+    <li><strong>Factor de edificabilidad:</strong> cuántos m² se pueden construir por cada m² de terreno. Ej.: 3 → un lote de 200 m² permite construir 600 m².</li>
+  </ul>
+  <div class="tabla-barrios">
+    {BARRIOS_CABA.map((b) => {
+      const v = porNombre[b.nombre] ?? {};
+      const pendiente = v.incidencia_usd == null || v.factor_edificabilidad == null;
+      return (
+        <form data-api="/api/admin/barrios" class="fila-barrio">
+          <input type="hidden" name="nombre" value={b.nombre}>
+          <strong>{b.nombre} {pendiente && <span class="etiqueta pendiente">PENDIENTE</span>}</strong>
+          <label>Incidencia USD/m² <input name="incidencia_usd" inputmode="decimal" value={v.incidencia_usd ?? ''}></label>
+          <label>Factor edificabilidad <input name="factor_edificabilidad" inputmode="decimal" value={v.factor_edificabilidad ?? ''}></label>
+          <button class="btn sec" type="submit">Guardar</button>
+        </form>
+      );
+    })}
+  </div>
+</Admin>

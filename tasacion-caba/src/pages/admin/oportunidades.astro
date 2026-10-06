@@ -1,7 +1,47 @@
 ---
-import Base from '../../layouts/Base.astro';
+import Admin from '../../layouts/Admin.astro';
+import TarjetaOportunidad from '../../components/TarjetaOportunidad.astro';
+import { getEnv } from '../../lib/env';
+import { clienteServidor } from '../../lib/db/supabase';
+import { COLUMNAS_CATALOGO } from '../../lib/negocio/desarrolladores';
+const db = clienteServidor(getEnv(Astro.locals));
+const { data } = db ? await db.from('oportunidades').select('*').order('creado_en', { ascending: false }).limit(300) : { data: [] };
+const ops: any[] = data ?? [];
+const dueños: Record<string, any> = {}, interesados: Record<string, any[]> = {};
+if (db && ops.length) {
+  const { data: ps } = await db.from('propietarios').select('id,nombre,whatsapp,direccion').in('id', ops.map((o) => o.propietario_id));
+  (ps ?? []).forEach((p: any) => (dueños[p.id] = p));
+  const { data: ints } = await db.from('intereses').select('oportunidad_id,desarrollador_id,creado_en').in('oportunidad_id', ops.map((o) => o.id));
+  const { data: ds } = (ints ?? []).length ? await db.from('desarrolladores').select('id,empresa,nombre,whatsapp,email').in('id', (ints ?? []).map((i: any) => i.desarrollador_id)) : { data: [] };
+  const porId = Object.fromEntries((ds ?? []).map((d: any) => [d.id, d]));
+  (ints ?? []).forEach((i: any) => (interesados[i.oportunidad_id] ??= []).push(porId[i.desarrollador_id]));
+}
+const cols = COLUMNAS_CATALOGO.split(',');
+const anonima = (o: any) => Object.fromEntries(cols.map((c) => [c, o[c]]));
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 6: Oportunidades: publicar/despublicar, vista previa, quién marcó Me interesa -->
-</Base>
+<Admin titulo="Oportunidades">
+  {!db && <p class="aviso">La base de datos no está configurada.</p>}
+  <p class="bajada">Una oportunidad se ve en el catálogo solo si está <strong>publicada</strong>, y solo se puede publicar si el dueño te dio su OK. Se crean desde la lista de <a href="/admin/propietarios">propietarios</a>.</p>
+  {db && ops.length === 0 && <p class="aviso">Todavía no hay oportunidades.</p>}
+  {ops.map((o) => (
+    <section class="bloque-op">
+      <p><strong>Dueño (solo lo ves vos):</strong> {dueños[o.propietario_id]?.nombre} · {dueños[o.propietario_id]?.direccion} · {dueños[o.propietario_id]?.whatsapp}</p>
+      <p><strong>Estado:</strong> {o.publicada ? '🟢 Publicada' : '⚪ No publicada'} · {o.ok_del_dueno ? 'Dueño dio su OK' : 'Falta el OK del dueño'}</p>
+      <div class="botonera">
+        {o.ok_del_dueno
+          ? <button class="btn sec" data-api="/api/admin/oportunidad" data-confirmar="Si quitás el OK, la oportunidad se despublica. ¿Seguro?" data-json={JSON.stringify({ accion: 'quitar_ok_dueno', id: o.id })}>Quitar OK del dueño</button>
+          : <button class="btn sec" data-api="/api/admin/oportunidad" data-confirmar="¿Confirmás que el dueño te dio su OK para publicar?" data-json={JSON.stringify({ accion: 'ok_dueno', id: o.id })}>El dueño dio su OK</button>}
+        {o.publicada
+          ? <button class="btn sec" data-api="/api/admin/oportunidad" data-json={JSON.stringify({ accion: 'despublicar', id: o.id })}>Despublicar</button>
+          : <button class="btn" data-api="/api/admin/oportunidad" data-json={JSON.stringify({ accion: 'publicar', id: o.id })}>Publicar</button>}
+        <button class="btn sec" data-api="/api/admin/oportunidad" data-confirmar="¿Borrar esta oportunidad?" data-json={JSON.stringify({ accion: 'borrar', id: o.id })}>Borrar</button>
+      </div>
+      <h3>Vista previa (lo que ve el desarrollador)</h3>
+      <TarjetaOportunidad o={anonima(o)} boton={false} />
+      <h3>Interesados ({(interesados[o.id] ?? []).length})</h3>
+      {(interesados[o.id] ?? []).length === 0 ? <p class="chico-gris">Nadie marcó "Me interesa" todavía.</p> : (
+        <ul>{(interesados[o.id] ?? []).map((d) => <li>{d?.empresa} · {d?.nombre} · {d?.whatsapp} · {d?.email}</li>)}</ul>
+      )}
+    </section>
+  ))}
+</Admin>

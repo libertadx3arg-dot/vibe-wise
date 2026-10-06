@@ -1,7 +1,42 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { getEnv } from '../../lib/env';
+import { clienteServidor } from '../../lib/db/supabase';
+import TarjetaOportunidad from '../../components/TarjetaOportunidad.astro';
+import { listarCatalogo } from '../../lib/negocio/desarrolladores';
+const usuario = (Astro.locals as any).usuario;
+if (!usuario) return Astro.redirect('/acceso?rol=desarrollador&next=/desarrollador/catalogo');
+const db = clienteServidor(getEnv(Astro.locals));
+const { data: dev } = db ? await db.from('desarrolladores').select('*').eq('email', usuario.email).maybeSingle() : { data: null };
+let oportunidades: any[] = [], marcadas = new Set<string>();
+if (db && dev?.estado === 'aprobado') {
+  oportunidades = await listarCatalogo(db, dev);
+  oportunidades.sort((a, b) => Number(b.coincide) - Number(a.coincide));
+  const { data } = await db.from('intereses').select('oportunidad_id').eq('desarrollador_id', dev.id);
+  marcadas = new Set((data ?? []).map((x: any) => x.oportunidad_id));
+}
+Astro.response.headers.set('cache-control', 'private, no-store');
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 5: Catálogo anónimo (solo aprobados). NUNCA dirección ni datos del dueño -->
+<Base titulo="Oportunidades">
+  <h1>Oportunidades</h1>
+  {!dev && <p>No encontramos un perfil de desarrollador para este email. <a href="/desarrollador">Registrate acá</a>.</p>}
+  {dev?.estado === 'pendiente' && <p class="aviso">Tu perfil está <strong>pendiente de aprobación</strong>. Cuando lo aprobemos vas a ver el catálogo acá. <a href="/desarrollador/perfil">Editar mi perfil</a></p>}
+  {dev?.estado === 'rechazado' && <p class="aviso">Por ahora no podemos darte acceso al catálogo. Si creés que es un error, escribinos.</p>}
+  {dev?.estado === 'aprobado' && (<>
+    <p class="bajada">Todas son anónimas. Si te interesa una, avisanos y te contamos más. <a href="/desarrollador/perfil">Mi perfil de búsqueda</a></p>
+    {oportunidades.length === 0 && <p class="aviso">Todavía no hay oportunidades publicadas. Te avisamos cuando haya.</p>}
+    <div class="tarjetas">
+      {oportunidades.map((o) => <TarjetaOportunidad o={o} coincide={o.coincide} marcada={marcadas.has(o.id)} />)}
+    </div>
+    <p class="aviso">Los valores son estimaciones orientativas, no tasaciones.</p>
+  </>)}
+  <script>
+    document.querySelectorAll<HTMLButtonElement>('.me-interesa').forEach((b) => b.addEventListener('click', async () => {
+      b.disabled = true;
+      const r = await fetch('/api/desarrollador/me-interesa', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ oportunidadId: b.dataset.id }) });
+      const j = await r.json().catch(() => ({}));
+      b.textContent = r.ok ? 'Ya nos avisaste ✓' : (j.error || 'No se pudo. Probá de nuevo.');
+      if (!r.ok) b.disabled = false;
+    }));
+  </script>
 </Base>

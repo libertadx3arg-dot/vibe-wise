@@ -1,7 +1,30 @@
 ---
 import Base from '../layouts/Base.astro';
+import { SITIO } from '../config/sitio';
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 7: Política de privacidad (borrador, marcar lo que revisa un abogado; Ley 25.326) -->
+<Base titulo="Política de privacidad" descripcion="Cómo usamos tus datos personales." noindex>
+  <p class="borrador"><strong>BORRADOR.</strong> Este texto debe ser revisado por un abogado antes de publicar. Los puntos marcados <mark>[REVISAR]</mark> requieren decisión o verificación legal.</p>
+  <h1>Política de privacidad</h1>
+  <h2>1. Quién es responsable de tus datos</h2>
+  <p>El responsable del tratamiento es {SITIO.titular}, con domicilio en {SITIO.domicilioLegal}. Contacto: {SITIO.emailContacto}. {SITIO.pie}. <mark>[REVISAR: completar titular, domicilio y confirmar matrícula]</mark></p>
+  <h2>2. Qué datos recopilamos</h2>
+  <ul>
+    <li><strong>Propietarios:</strong> nombre, WhatsApp, email, dirección y características de la propiedad, y tus respuestas (superficie, estado, plazo de venta, etc.).</li>
+    <li><strong>Desarrolladores:</strong> nombre, empresa, email, WhatsApp, CUIT (opcional) y tu perfil de búsqueda.</li>
+    <li>Datos técnicos mínimos, como la dirección IP, para evitar abusos y spam.</li>
+  </ul>
+  <h2>3. Para qué los usamos</h2>
+  <p>Para generarte la estimación, contactarte por tu consulta, y, si lo autorizás, conectar tu propiedad con desarrolladores interesados. Usamos tus datos únicamente para esas finalidades.</p>
+  <h2>4. Con quién los compartimos</h2>
+  <ul>
+    <li><strong>Desarrolladores:</strong> nunca reciben tu nombre, dirección exacta ni datos de contacto. Solo ven datos anónimos (barrio, superficie, rango de precio), y únicamente si vos diste tu OK para publicar. <mark>[REVISAR: confirmar el mecanismo de consentimiento para publicar]</mark></li>
+    <li><strong>Proveedores de servicios</strong> que usamos para operar el sitio: alojamiento y seguridad (Cloudflare), base de datos y acceso (Supabase), avisos internos (Telegram) y redacción del informe (un proveedor de inteligencia artificial). A la inteligencia artificial solo se le envían datos del inmueble y del cálculo, <strong>nunca nombre, teléfono ni email</strong>. Algunos de estos proveedores pueden almacenar datos fuera de la Argentina. <mark>[REVISAR: transferencia internacional de datos, art. 12 Ley 25.326]</mark></li>
+  </ul>
+  <h2>5. Tu consentimiento y tus derechos</h2>
+  <p>Tratamos tus datos con tu consentimiento libre, expreso e informado, que das al tildar la casilla correspondiente (Ley 25.326 de Protección de los Datos Personales). Podés acceder, rectificar y suprimir tus datos escribiendo a {SITIO.emailContacto}, y retirar tu consentimiento cuando quieras.</p>
+  <p>El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a los mismos en forma gratuita a intervalos no inferiores a seis meses, salvo que se acredite un interés legítimo al efecto. La Agencia de Acceso a la Información Pública, en su carácter de Órgano de Control de la Ley 25.326, tiene la atribución de atender las denuncias y reclamos que interpongan quienes resulten afectados en sus derechos. <mark>[REVISAR: texto legal exacto y registro de la base de datos ante la AAIP]</mark></p>
+  <h2>6. Cuánto tiempo los guardamos</h2>
+  <p><mark>[REVISAR: definir plazo de conservación]</mark></p>
+  <h2>7. Seguridad</h2>
+  <p>Los datos se guardan en una base protegida: el acceso está limitado y los desarrolladores no pueden ver datos de propietarios ni de otros desarrolladores.</p>
 </Base>

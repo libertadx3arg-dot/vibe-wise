@@ -1,7 +1,10 @@
 ---
 import Base from '../../layouts/Base.astro';
+import FormDesarrollador from '../../components/FormDesarrollador.astro';
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 5: Registro + login link mágico -->
+<Base titulo="Soy desarrollador" descripcion="Registrate para ver oportunidades anónimas de terrenos en CABA que coinciden con tu búsqueda.">
+  <h1>Terrenos en CABA para desarrolladores</h1>
+  <p class="bajada">Contanos qué buscás. Cuando aprobemos tu perfil, vas a ver un catálogo de oportunidades anónimas: barrio, superficie y rango de precio. Nunca la dirección ni los datos del dueño.</p>
+  <p class="aviso">¿Ya tenés cuenta? <a href="/acceso?rol=desarrollador&next=/desarrollador/catalogo">Entrá con tu email</a>.</p>
+  <FormDesarrollador modo="registro" />
 </Base>

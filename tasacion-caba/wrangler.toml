@@ -1,0 +1,5 @@
+# Configuración de Cloudflare Pages (plan gratis). Ver docs/PUBLICAR.md
+name = "plano-base"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist"
