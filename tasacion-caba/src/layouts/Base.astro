@@ -1,15 +1,22 @@
 ---
 import { SITIO } from '../config/sitio';
 const { titulo = SITIO.marca, descripcion = '' } = Astro.props;
+const [a, ...b] = SITIO.marca.split(' ');
 ---
 <html lang="es-AR">
   <head>
-    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{titulo}</title><meta name="description" content={descripcion} />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo === SITIO.marca ? titulo : `${titulo} · ${SITIO.marca}`}</title>
+    <meta name="description" content={descripcion} />
     <link rel="stylesheet" href="/estilos.css" />
   </head>
   <body>
+    <header class="cabecera"><a class="marca" href="/">{a} <span>{b.join(' ')}</span></a></header>
     <main><slot /></main>
-    <footer>{SITIO.pie} · <a href="/privacidad">Privacidad</a> · <a href="/terminos">Términos</a></footer>
+    <footer>
+      <p>{SITIO.pie}</p>
+      <p><a href="/privacidad">Privacidad</a> · <a href="/terminos">Términos</a></p>
+    </footer>
   </body>
 </html>

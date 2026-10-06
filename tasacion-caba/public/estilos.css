@@ -1,1 +1,39 @@
-/* Mobile first. TODO Fase 2 */
+/* Plano Base · diseño base. Mobile first: se piensa para celular y se amplía en pantallas grandes. */
+:root {
+  --tinta: #14213d;       /* azul oscuro: texto y marca */
+  --acento: #c8501e;      /* naranja terracota: botones */
+  --acento-oscuro: #a53f14;
+  --fondo: #f7f5f0;
+  --papel: #ffffff;
+  --linea: #dcd8cd;
+  --suave: #5c6477;
+  --radio: 14px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.0625rem; line-height: 1.55; color: var(--tinta); background: var(--fondo);
+}
+a { color: inherit; }
+.cabecera { padding: 1rem 1.25rem; border-bottom: 1px solid var(--linea); background: var(--papel); }
+.marca { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; text-decoration: none; }
+.marca span { color: var(--acento); }
+main { flex: 1; width: 100%; max-width: 760px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+h1 { font-size: clamp(1.9rem, 6vw, 2.8rem); line-height: 1.12; letter-spacing: -0.02em; margin: 0 0 1rem; }
+.bajada { color: var(--suave); font-size: 1.15rem; margin: 0 0 2rem; }
+.opciones { display: grid; gap: 1rem; }
+.boton-grande {
+  display: block; padding: 1.4rem 1.25rem; border-radius: var(--radio); text-decoration: none;
+  background: var(--acento); color: #fff; font-weight: 700; font-size: 1.25rem;
+  transition: background .15s, transform .15s;
+}
+.boton-grande small { display: block; font-weight: 400; font-size: .95rem; opacity: .92; margin-top: .25rem; }
+.boton-grande:hover, .boton-grande:focus-visible { background: var(--acento-oscuro); transform: translateY(-1px); }
+.boton-grande.secundario { background: var(--papel); color: var(--tinta); border: 2px solid var(--tinta); }
+.boton-grande.secundario:hover, .boton-grande.secundario:focus-visible { background: var(--tinta); color: #fff; }
+.aviso { margin-top: 2rem; padding: 1rem 1.1rem; border-left: 4px solid var(--linea); color: var(--suave); font-size: .95rem; }
+footer { padding: 1.25rem; text-align: center; font-size: .9rem; color: var(--suave); border-top: 1px solid var(--linea); background: var(--papel); }
+footer a { text-decoration: underline; }
+@media (min-width: 640px) { .opciones { grid-template-columns: 1fr 1fr; } main { padding-top: 3.5rem; } }

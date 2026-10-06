@@ -1,8 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
+import { SITIO } from '../config/sitio';
 ---
-<Base descripcion="Cuánto vale tu terreno en CABA para un desarrollador. Estimación orientativa.">
-  <h1>PENDIENTE: titular</h1>
-  <a class="boton-grande" href="/propietario">Soy propietario</a>
-  <a class="boton-grande" href="/desarrollador">Soy desarrollador</a>
+<Base descripcion="Averiguá cuánto podría valer tu casa o terreno en CABA para un desarrollador. Estimación orientativa.">
+  <h1>¿Cuánto podría valer tu terreno para un desarrollador?</h1>
+  <p class="bajada">Estimación orientativa para casas y terrenos en la Ciudad de Buenos Aires.</p>
+  <div class="opciones">
+    <a class="boton-grande" href="/propietario">Soy propietario<small>Quiero saber cuánto podría valer mi propiedad</small></a>
+    <a class="boton-grande secundario" href="/desarrollador">Soy desarrollador<small>Busco terrenos para desarrollar</small></a>
+  </div>
+  <p class="aviso">{SITIO.avisoNoTasacion}</p>
 </Base>
