@@ -41,3 +41,14 @@ Esta carpeta ya tiene la **estructura**; tu trabajo es completarla fase por fase
 ## Fase 7 – seguridad
 Probar con un usuario desarrollador real que no pueda leer `propietarios`, `desarrolladores` ajenos
 ni `oportunidades.propietario_id`. Dejar el test escrito.
+
+## Estado de la Fase 3 (hecha, falta OK del usuario)
+- Recorrido del propietario en `src/pages/propietario/index.astro` (8 pasos, resultado en la misma pantalla).
+- `POST /api/propietario/consulta`: valida, calcula, arma informe de plantilla, guarda en Supabase **si hay claves** (si no, "modo prueba": no guarda).
+- Cuenta del precio en `src/lib/valuacion/calculo.ts` con tests (`npm test`).
+- Se agregó la pregunta "¿está protegida?" (catalogado/APH) porque el catastro no se pudo consultar.
+- **PENDIENTE (no inventar):** `incidenciaUsd` y `factorEdificabilidad` de cada barrio (`src/config/barrios.ts` / tabla `barrios`),
+  umbral y descuento de lote chico (`SITIO.ajusteLoteChico`). Hasta que el corredor los cargue, el resultado dice "te lo pasamos personalmente".
+- **PENDIENTE:** autocompletado USIG y datos de parcela. El entorno bloqueó `servicios.usig.buenosaires.gob.ar` (403 de la red del sandbox),
+  así que no se verificó ningún endpoint. Hoy el usuario escribe la dirección y elige el barrio de una lista.
+- **PENDIENTE:** el aviso por Telegram de "nuevo propietario" es de la Fase 4. Límite por IP en memoria (débil): endurecer en Fase 7.

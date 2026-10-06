@@ -37,3 +37,35 @@ h1 { font-size: clamp(1.9rem, 6vw, 2.8rem); line-height: 1.12; letter-spacing: -
 footer { padding: 1.25rem; text-align: center; font-size: .9rem; color: var(--suave); border-top: 1px solid var(--linea); background: var(--papel); }
 footer a { text-decoration: underline; }
 @media (min-width: 640px) { .opciones { grid-template-columns: 1fr 1fr; } main { padding-top: 3.5rem; } }
+
+/* ---- Recorrido del propietario ---- */
+.progreso { height: 8px; background: var(--linea); border-radius: 99px; overflow: hidden; }
+.progreso > div { height: 100%; width: 0; background: var(--acento); transition: width .25s; }
+.paso-txt { color: var(--suave); font-size: .95rem; margin: .5rem 0 1.5rem; }
+form label { display: block; font-weight: 600; margin-bottom: 1rem; }
+form input:not([type=radio]):not([type=checkbox]), form select {
+  display: block; width: 100%; margin-top: .35rem; padding: .85rem .9rem; font: inherit; font-weight: 400;
+  border: 2px solid var(--linea); border-radius: 10px; background: var(--papel); color: var(--tinta);
+}
+form input:focus, form select:focus { outline: 3px solid color-mix(in srgb, var(--acento) 35%, transparent); border-color: var(--acento); }
+fieldset { border: 0; padding: 0; margin: 0 0 1.25rem; }
+legend { font-weight: 600; margin-bottom: .5rem; padding: 0; }
+.ayuda { color: var(--suave); margin-top: -.25rem; }
+.radios { display: grid; gap: .6rem; }
+.radios.horizontal { grid-template-columns: repeat(3, 1fr); }
+.radio { display: flex !important; align-items: center; gap: .6rem; margin: 0 !important; padding: .9rem 1rem; font-weight: 500 !important;
+  border: 2px solid var(--linea); border-radius: 10px; background: var(--papel); cursor: pointer; }
+.radio:has(input:checked) { border-color: var(--acento); background: #fdf1ea; }
+.radio input, .check input { width: 1.2rem; height: 1.2rem; accent-color: var(--acento); flex: none; }
+.check { display: flex !important; gap: .6rem; align-items: flex-start; font-weight: 400 !important; }
+.error { color: #a4161a; background: #fdecec; padding: .75rem 1rem; border-radius: 10px; font-weight: 600; }
+.botonera { display: flex; gap: .75rem; margin-top: 1.5rem; }
+.btn { flex: 1; padding: 1rem; font: inherit; font-weight: 700; font-size: 1.1rem; border: 0; border-radius: var(--radio); background: var(--acento); color: #fff; cursor: pointer; }
+.btn:hover:not(:disabled) { background: var(--acento-oscuro); }
+.btn:disabled { opacity: .6; cursor: wait; }
+.btn.sec { flex: 0 0 auto; background: var(--papel); color: var(--tinta); border: 2px solid var(--tinta); }
+[hidden] { display: none !important; }
+.rango { font-size: clamp(1.7rem, 7vw, 2.4rem); font-weight: 800; color: var(--acento); margin: 0 0 .5rem; }
+.m2 { font-weight: 600; margin: 0 0 1.5rem; }
+.informe p { margin: 0 0 1rem; }
+#res-wa { margin-top: 1.5rem; text-align: center; }

@@ -1,7 +1,224 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { SITIO } from '../../config/sitio';
+import { BARRIOS_CABA } from '../../config/barrios';
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
 ---
-<Base titulo="Página en construcción">
-  <h1>Próximamente</h1>
-  <!-- TODO Fase 3: Paso 1 dirección (USIG) → preguntas con barra de progreso → contacto + consentimiento -->
+<Base titulo="Estimá el valor de tu terreno" descripcion="Respondé unas preguntas simples y recibí un rango estimado de cuánto podría valer tu casa o terreno en CABA para un desarrollador.">
+  <div class="progreso" aria-hidden="true"><div id="barra"></div></div>
+  <p id="paso-txt" class="paso-txt"></p>
+
+  <form id="wizard" novalidate>
+    <!-- 1 -->
+    <section class="paso" data-paso>
+      <h1>¿Dónde está la propiedad?</h1>
+      <label>Dirección <input name="direccion" autocomplete="street-address" placeholder="Ej: Av. Santa Fe 3000" required></label>
+      <label>Barrio
+        <select name="barrio" required>
+          <option value="">Elegí el barrio</option>
+          {BARRIOS_CABA.map((b) => <option value={b.nombre}>{b.nombre}</option>)}
+          <option value="__otro">Está fuera de CABA</option>
+        </select>
+      </label>
+    </section>
+    <!-- 2 -->
+    <section class="paso" data-paso hidden>
+      <h1>¿Qué tipo de propiedad es?</h1>
+      <div class="radios">
+        {['Casa','Terreno baldío','PH','Galpón','Otro'].map((t) => <label class="radio"><input type="radio" name="tipo" value={t}> {t}</label>)}
+      </div>
+    </section>
+    <!-- 3 -->
+    <section class="paso" data-paso hidden>
+      <h1>¿Qué superficie tiene?</h1>
+      <p class="ayuda">Figura en la escritura o en el plano. Si no la sabés, tildá "No sé".</p>
+      <label>Terreno (m²) <input name="supTerreno" inputmode="decimal" placeholder="Ej: 250"></label>
+      <label class="check"><input type="checkbox" name="noSeTerreno"> No sé la superficie del terreno</label>
+      <label>Construida (m²) <input name="supConstruida" inputmode="decimal" placeholder="Ej: 180"></label>
+      <label class="check"><input type="checkbox" name="noSeConstruida"> No sé la superficie construida</label>
+    </section>
+    <!-- 4 -->
+    <section class="paso" data-paso hidden>
+      <h1>¿En qué estado está?</h1>
+      <div class="radios">
+        <label class="radio"><input type="radio" name="estadoInmueble" value="habitada"> Habitada</label>
+        <label class="radio"><input type="radio" name="estadoInmueble" value="vacia"> Vacía</label>
+        <label class="radio"><input type="radio" name="estadoInmueble" value="alquilada"> Alquilada</label>
+      </div>
+    </section>
+    <!-- 5 -->
+    <section class="paso" data-paso hidden>
+      <h1>Sobre los dueños</h1>
+      <fieldset><legend>¿Hay más dueños?</legend>
+        <div class="radios horizontal">
+          <label class="radio"><input type="radio" name="masDuenos" value="si"> Sí</label>
+          <label class="radio"><input type="radio" name="masDuenos" value="no"> No</label>
+          <label class="radio"><input type="radio" name="masDuenos" value="no_se"> No sé</label>
+        </div></fieldset>
+      <fieldset><legend>¿Hay una sucesión en curso?</legend>
+        <div class="radios horizontal">
+          <label class="radio"><input type="radio" name="sucesion" value="si"> Sí</label>
+          <label class="radio"><input type="radio" name="sucesion" value="no"> No</label>
+          <label class="radio"><input type="radio" name="sucesion" value="no_se"> No sé</label>
+        </div></fieldset>
+    </section>
+    <!-- 6 -->
+    <section class="paso" data-paso hidden>
+      <h1>¿En cuánto tiempo pensás vender?</h1>
+      <div class="radios">
+        <label class="radio"><input type="radio" name="plazo" value="ya"> Ya</label>
+        <label class="radio"><input type="radio" name="plazo" value="6_meses"> En 6 meses</label>
+        <label class="radio"><input type="radio" name="plazo" value="1_anio"> En 1 año</label>
+        <label class="radio"><input type="radio" name="plazo" value="solo_saber"> Solo quiero saber</label>
+      </div>
+    </section>
+    <!-- 7 -->
+    <section class="paso" data-paso hidden>
+      <h1>¿Está protegida?</h1>
+      <p class="ayuda">¿El inmueble está catalogado o en una zona de protección patrimonial? Si es así, las reglas para construir cambian mucho.</p>
+      <div class="radios horizontal">
+        <label class="radio"><input type="radio" name="protegido" value="si"> Sí</label>
+        <label class="radio"><input type="radio" name="protegido" value="no"> No</label>
+        <label class="radio"><input type="radio" name="protegido" value="no_se"> No sé</label>
+      </div>
+    </section>
+    <!-- 8 -->
+    <section class="paso" data-paso hidden>
+      <h1>Para mostrarte el resultado</h1>
+      <p class="ayuda">Dejanos tus datos y te mostramos la estimación en esta misma pantalla.</p>
+      <label>Nombre <input name="nombre" autocomplete="name" required></label>
+      <label>WhatsApp <input name="whatsapp" type="tel" autocomplete="tel" inputmode="tel" placeholder="Ej: 11 1234 5678" required></label>
+      <label>Email <input name="email" type="email" autocomplete="email" required></label>
+      <label class="check"><input type="checkbox" name="consentimiento" required>
+        <span>Acepto que {SITIO.marca} use mis datos para contactarme por esta consulta, según la <a href="/privacidad" target="_blank">política de privacidad</a> (Ley 25.326).</span></label>
+      {siteKey && <div class="cf-turnstile" data-sitekey={siteKey}></div>}
+    </section>
+
+    <p id="error" class="error" role="alert" hidden></p>
+    <div class="botonera">
+      <button type="button" id="atras" class="btn sec" hidden>Atrás</button>
+      <button type="button" id="siguiente" class="btn">Siguiente</button>
+    </div>
+  </form>
+
+  <section id="resultado" hidden>
+    <h1 id="res-titulo"></h1>
+    <div id="res-rango" class="rango" hidden></div>
+    <p id="res-m2" class="m2" hidden></p>
+    <div id="res-informe" class="informe"></div>
+    <p class="aviso">{SITIO.avisoNoTasacion}</p>
+    <a id="res-wa" class="boton-grande" hidden target="_blank" rel="noopener">Quiero hablar con un asesor</a>
+  </section>
+
+  {siteKey && <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+  <script>
+    const form = document.getElementById('wizard') as HTMLFormElement;
+    const pasos = Array.from(form.querySelectorAll<HTMLElement>('[data-paso]'));
+    const barra = document.getElementById('barra')!;
+    const pasoTxt = document.getElementById('paso-txt')!;
+    const btnSig = document.getElementById('siguiente') as HTMLButtonElement;
+    const btnAtras = document.getElementById('atras') as HTMLButtonElement;
+    const errEl = document.getElementById('error')!;
+    let actual = 0;
+
+    const val = (n: string) => (form.elements.namedItem(n) as HTMLInputElement | null)?.value.trim() ?? '';
+    const marcado = (n: string) => form.querySelector<HTMLInputElement>(`input[name="${n}"]:checked`)?.value ?? '';
+    const tilde = (n: string) => (form.elements.namedItem(n) as HTMLInputElement).checked;
+    const num = (s: string) => { const n = parseFloat(s.replace(',', '.')); return isFinite(n) && n > 0 ? n : null; };
+
+    function error(msg: string) { errEl.textContent = msg; errEl.hidden = !msg; }
+
+    function validar(i: number): string {
+      if (i === 0) {
+        if (!val('direccion')) return 'Escribí la dirección.';
+        if (!val('barrio')) return 'Elegí el barrio.';
+        if (val('barrio') === '__otro') return 'Por ahora solo cubrimos la Ciudad de Buenos Aires (CABA). Gracias por tu interés.';
+      }
+      if (i === 1 && !marcado('tipo')) return 'Elegí el tipo de propiedad.';
+      if (i === 2) {
+        if (!tilde('noSeTerreno') && !num(val('supTerreno'))) return 'Ingresá la superficie del terreno o tildá "No sé".';
+        if (!tilde('noSeConstruida') && val('supConstruida') && !num(val('supConstruida'))) return 'Revisá la superficie construida.';
+      }
+      if (i === 3 && !marcado('estadoInmueble')) return 'Elegí el estado.';
+      if (i === 4 && (!marcado('masDuenos') || !marcado('sucesion'))) return 'Respondé las dos preguntas.';
+      if (i === 5 && !marcado('plazo')) return 'Elegí un plazo.';
+      if (i === 6 && !marcado('protegido')) return 'Elegí una opción.';
+      if (i === 7) {
+        if (!val('nombre')) return 'Escribí tu nombre.';
+        if (val('whatsapp').replace(/\D/g, '').length < 8) return 'Revisá tu WhatsApp.';
+        if (!/^\S+@\S+\.\S+$/.test(val('email'))) return 'Revisá tu email.';
+        if (!tilde('consentimiento')) return 'Para continuar necesitamos tu consentimiento.';
+      }
+      return '';
+    }
+
+    function mostrar() {
+      pasos.forEach((p, i) => (p.hidden = i !== actual));
+      barra.style.width = ((actual + 1) / pasos.length) * 100 + '%';
+      pasoTxt.textContent = `Paso ${actual + 1} de ${pasos.length}`;
+      btnAtras.hidden = actual === 0;
+      btnSig.textContent = actual === pasos.length - 1 ? 'Ver resultado' : 'Siguiente';
+      error('');
+      window.scrollTo({ top: 0 });
+    }
+
+    btnAtras.addEventListener('click', () => { actual--; mostrar(); });
+    btnSig.addEventListener('click', async () => {
+      const msg = validar(actual);
+      if (msg) return error(msg);
+      if (actual < pasos.length - 1) { actual++; return mostrar(); }
+      await enviar();
+    });
+
+    async function enviar() {
+      btnSig.disabled = true; btnSig.textContent = 'Calculando…'; error('');
+      const cuerpo = {
+        direccion: val('direccion'), barrio: val('barrio'), tipo: marcado('tipo'),
+        supTerreno: tilde('noSeTerreno') ? null : num(val('supTerreno')),
+        supConstruida: tilde('noSeConstruida') ? null : num(val('supConstruida')),
+        estadoInmueble: marcado('estadoInmueble'), masDuenos: marcado('masDuenos'), sucesion: marcado('sucesion'),
+        plazo: marcado('plazo'), protegido: marcado('protegido'),
+        nombre: val('nombre'), whatsapp: val('whatsapp'), email: val('email'), consentimiento: tilde('consentimiento'),
+        turnstile: (form.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value,
+      };
+      try {
+        const r = await fetch('/api/propietario/consulta', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(cuerpo) });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || 'Algo salió mal.');
+        mostrarResultado(j);
+      } catch (e: any) {
+        error(e.message || 'No pudimos procesar la consulta. Probá de nuevo.');
+        btnSig.disabled = false; btnSig.textContent = 'Ver resultado';
+      }
+    }
+
+    const usd = (n: number) => 'USD ' + n.toLocaleString('es-AR');
+    function mostrarResultado(j: any) {
+      form.hidden = true;
+      document.querySelector('.progreso')!.setAttribute('hidden', '');
+      pasoTxt.setAttribute('hidden', '');
+      const r = j.resultado;
+      const t = document.getElementById('res-titulo')!;
+      const rango = document.getElementById('res-rango')!;
+      const m2 = document.getElementById('res-m2')!;
+      t.textContent = r.tipo === 'ok' ? 'Tu estimación' : r.tipo === 'protegido' ? 'Necesita una evaluación personalizada' : 'Te lo pasamos personalmente';
+      if (r.tipo === 'ok') { rango.textContent = `${usd(r.minUsd)} – ${usd(r.maxUsd)}`; rango.hidden = false; }
+      if ((r.tipo === 'ok' || r.tipo === 'personalizado') && r.m2Construibles) {
+        m2.textContent = `Se podrían construir aproximadamente ${r.m2Construibles.toLocaleString('es-AR')} m².`; m2.hidden = false;
+      }
+      document.getElementById('res-informe')!.innerHTML = '';
+      // El aviso de "no es una tasación" ya se muestra aparte, así que no se repite al final del informe.
+      const parrafos = String(j.informe).split('\n\n');
+      if (parrafos[parrafos.length - 1].startsWith('Es una estimación orientativa')) parrafos.pop();
+      for (const par of parrafos) { const p = document.createElement('p'); p.textContent = par; document.getElementById('res-informe')!.appendChild(p); }
+      const wa = document.getElementById('res-wa') as HTMLAnchorElement;
+      if (j.whatsappUrl) { wa.href = j.whatsappUrl; wa.hidden = false; }
+      document.getElementById('resultado')!.hidden = false;
+      window.scrollTo({ top: 0 });
+    }
+
+    form.addEventListener('input', () => error(''));
+    form.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') { e.preventDefault(); btnSig.click(); } });
+    mostrar();
+  </script>
 </Base>

@@ -3,7 +3,8 @@
 
 create table barrios (
   nombre text primary key,
-  incidencia_usd numeric,          -- null = PENDIENTE
+  incidencia_usd numeric,          -- USD por m² construible. null = PENDIENTE
+  factor_edificabilidad numeric,   -- m² construibles por m² de terreno. null = PENDIENTE
   actualizado_en timestamptz default now()
 );
 
@@ -13,7 +14,7 @@ create table propietarios (
   nombre text not null, whatsapp text not null, email text not null,
   consentimiento boolean not null check (consentimiento),
   direccion text not null, barrio text references barrios(nombre), smp text,
-  tipo text, sup_terreno numeric, sup_construida numeric,
+  tipo text, sup_terreno numeric, sup_construida numeric, protegido text,
   estado_inmueble text, mas_duenos text, sucesion text, plazo text,
   resultado jsonb,                 -- salida de calcularValuacion()
   informe text,                    -- caché del informe (IA o plantilla)
